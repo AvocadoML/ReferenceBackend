@@ -1,6 +1,5 @@
-.metadata/
-*/build/*
-*/doc/*
-*/Debug/*
-*/Release/*
-*/Testing/*
+build/
+doc/
+Debug/
+Release/
+Testing/
