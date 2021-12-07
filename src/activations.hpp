@@ -8,7 +8,7 @@
 #ifndef ACTIVATIONS_HPP_
 #define ACTIVATIONS_HPP_
 
-#include <avocado/backend/backend_api.h>
+#include <avocado/backend/backend_defs.h>
 
 #include "utils.hpp"
 

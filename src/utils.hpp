@@ -17,7 +17,6 @@ namespace avocado
 {
 	namespace backend
 	{
-
 		template<typename T>
 		T zero() noexcept
 		{
@@ -46,6 +45,10 @@ namespace avocado
 		{
 			return float16(logf(static_cast<float>(x)));
 		}
+		inline bfloat16 log(bfloat16 x) noexcept
+		{
+			return bfloat16(logf(static_cast<float>(x)));
+		}
 
 		inline float exp(float x) noexcept
 		{
@@ -58,6 +61,10 @@ namespace avocado
 		inline float16 exp(float16 x) noexcept
 		{
 			return float16(expf(static_cast<float>(x)));
+		}
+		inline bfloat16 exp(bfloat16 x) noexcept
+		{
+			return bfloat16(expf(static_cast<float>(x)));
 		}
 
 		inline float tanh(float x) noexcept
@@ -72,6 +79,10 @@ namespace avocado
 		{
 			return float16(tanhf(static_cast<float>(x)));
 		}
+		inline bfloat16 tanh(bfloat16 x) noexcept
+		{
+			return bfloat16(tanhf(static_cast<float>(x)));
+		}
 
 		inline float expm1(float x) noexcept
 		{
@@ -84,6 +95,10 @@ namespace avocado
 		inline float16 expm1(float16 x) noexcept
 		{
 			return float16(expm1f(static_cast<float>(x)));
+		}
+		inline bfloat16 expm1(bfloat16 x) noexcept
+		{
+			return bfloat16(expm1f(static_cast<float>(x)));
 		}
 
 		inline float log1p(float x) noexcept
@@ -98,6 +113,10 @@ namespace avocado
 		{
 			return float16(log1pf(static_cast<float>(x)));
 		}
+		inline bfloat16 log1p(bfloat16 x) noexcept
+		{
+			return bfloat16(log1pf(static_cast<float>(x)));
+		}
 
 		inline float fabs(float x) noexcept
 		{
@@ -110,6 +129,10 @@ namespace avocado
 		inline float16 fabs(float16 x) noexcept
 		{
 			return float16(fabsf(static_cast<float>(x)));
+		}
+		inline bfloat16 fabs(bfloat16 x) noexcept
+		{
+			return bfloat16(fabsf(static_cast<float>(x)));
 		}
 
 		template<typename T>
@@ -136,17 +159,17 @@ namespace avocado
 		}
 
 		template<typename T>
-		void clear(T *ptr, size_t elements) noexcept
+		void clear(T *ptr, avSize_t elements) noexcept
 		{
 			assert(ptr != nullptr);
-			for (size_t i = 0; i < elements; i++)
+			for (avSize_t i = 0; i < elements; i++)
 				ptr[i] = zero<T>();
 		}
 		template<typename T>
-		void fill(T *ptr, size_t elements, T value) noexcept
+		void fill(T *ptr, avSize_t elements, T value) noexcept
 		{
 			assert(ptr != nullptr);
-			for (size_t i = 0; i < elements; i++)
+			for (avSize_t i = 0; i < elements; i++)
 				ptr[i] = value;
 		}
 
