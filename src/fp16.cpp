@@ -182,7 +182,10 @@ namespace avocado
 {
 	namespace backend
 	{
-
+		float16::float16(unsigned short raw_binary_value) noexcept :
+				m_data(raw_binary_value)
+		{
+		}
 		float16::float16(int i) noexcept :
 				m_data(float_to_half(static_cast<float>(i)))
 		{
@@ -251,6 +254,22 @@ namespace avocado
 		{
 			return half_to_float(lhs.m_data) >= half_to_float(rhs.m_data);
 		}
+		float16 operator&(const float16 &lhs, const float16 &rhs) noexcept
+		{
+			return float16(lhs.m_data & rhs.m_data);
+		}
+		float16 operator|(const float16 &lhs, const float16 &rhs) noexcept
+		{
+			return float16(lhs.m_data & rhs.m_data);
+		}
+		float16 operator^(const float16 &lhs, const float16 &rhs) noexcept
+		{
+			return float16(lhs.m_data & rhs.m_data);
+		}
+		float16 operator~(const float16 &a) noexcept
+		{
+			return float16(~(a.m_data));
+		}
 
 		float16 operator+(const float16 &x) noexcept
 		{
@@ -264,17 +283,52 @@ namespace avocado
 		{
 			return float16(half_to_float(lhs.m_data) + half_to_float(rhs.m_data));
 		}
+		float16 operator+(const float16 &lhs, const float &rhs) noexcept
+		{
+			return float16(half_to_float(lhs.m_data) + rhs);
+		}
+		float16 operator+(const float &lhs, const float16 &rhs) noexcept
+		{
+			return float16(lhs + half_to_float(rhs.m_data));
+		}
+
 		float16 operator-(const float16 &lhs, const float16 &rhs) noexcept
 		{
 			return float16(half_to_float(lhs.m_data) - half_to_float(rhs.m_data));
 		}
+		float16 operator-(const float16 &lhs, const float &rhs) noexcept
+		{
+			return float16(half_to_float(lhs.m_data) - rhs);
+		}
+		float16 operator-(const float &lhs, const float16 &rhs) noexcept
+		{
+			return float16(lhs - half_to_float(rhs.m_data));
+		}
+
 		float16 operator*(const float16 &lhs, const float16 &rhs) noexcept
 		{
 			return float16(half_to_float(lhs.m_data) * half_to_float(rhs.m_data));
 		}
+		float16 operator*(const float16 &lhs, const float &rhs) noexcept
+		{
+			return float16(half_to_float(lhs.m_data) * rhs);
+		}
+		float16 operator*(const float &lhs, const float16 &rhs) noexcept
+		{
+			return float16(lhs * half_to_float(rhs.m_data));
+		}
+
 		float16 operator/(const float16 &lhs, const float16 &rhs) noexcept
 		{
 			return float16(half_to_float(lhs.m_data) / half_to_float(rhs.m_data));
+		}
+		float16 operator/(const float16 &lhs, const float &rhs) noexcept
+		{
+			return float16(half_to_float(lhs.m_data) / rhs);
+		}
+		float16 operator/(const float &lhs, const float16 &rhs) noexcept
+		{
+			return float16(lhs / half_to_float(rhs.m_data));
 		}
 
 		float16& operator+=(float16 &lhs, const float16 &rhs) noexcept
@@ -298,6 +352,11 @@ namespace avocado
 			return lhs;
 		}
 
+		/* bfloat16 implementation */
+		bfloat16::bfloat16(unsigned short raw_binary_value) noexcept :
+				m_data(raw_binary_value)
+		{
+		}
 		bfloat16::bfloat16(int i) noexcept :
 				m_data(float_to_bfloat16(static_cast<float>(i)))
 		{
@@ -366,6 +425,22 @@ namespace avocado
 		{
 			return bfloat16_to_float(lhs.m_data) >= bfloat16_to_float(rhs.m_data);
 		}
+		bfloat16 operator&(const bfloat16 &lhs, const bfloat16 &rhs) noexcept
+		{
+			return bfloat16(lhs.m_data & rhs.m_data);
+		}
+		bfloat16 operator|(const bfloat16 &lhs, const bfloat16 &rhs) noexcept
+		{
+			return bfloat16(lhs.m_data & rhs.m_data);
+		}
+		bfloat16 operator^(const bfloat16 &lhs, const bfloat16 &rhs) noexcept
+		{
+			return bfloat16(lhs.m_data & rhs.m_data);
+		}
+		bfloat16 operator~(const bfloat16 &a) noexcept
+		{
+			return bfloat16(~(a.m_data));
+		}
 
 		bfloat16 operator+(const bfloat16 &x) noexcept
 		{
@@ -379,17 +454,52 @@ namespace avocado
 		{
 			return bfloat16(bfloat16_to_float(lhs.m_data) + bfloat16_to_float(rhs.m_data));
 		}
+		bfloat16 operator+(const bfloat16 &lhs, const float &rhs) noexcept
+		{
+			return bfloat16(bfloat16_to_float(lhs.m_data) + rhs);
+		}
+		bfloat16 operator+(const float &lhs, const bfloat16 &rhs) noexcept
+		{
+			return bfloat16(lhs + bfloat16_to_float(rhs.m_data));
+		}
+
 		bfloat16 operator-(const bfloat16 &lhs, const bfloat16 &rhs) noexcept
 		{
 			return bfloat16(bfloat16_to_float(lhs.m_data) - bfloat16_to_float(rhs.m_data));
 		}
+		bfloat16 operator-(const bfloat16 &lhs, const float &rhs) noexcept
+		{
+			return bfloat16(bfloat16_to_float(lhs.m_data) - rhs);
+		}
+		bfloat16 operator-(const float &lhs, const bfloat16 &rhs) noexcept
+		{
+			return bfloat16(lhs - bfloat16_to_float(rhs.m_data));
+		}
+
 		bfloat16 operator*(const bfloat16 &lhs, const bfloat16 &rhs) noexcept
 		{
 			return bfloat16(bfloat16_to_float(lhs.m_data) * bfloat16_to_float(rhs.m_data));
 		}
+		bfloat16 operator*(const bfloat16 &lhs, const float &rhs) noexcept
+		{
+			return bfloat16(bfloat16_to_float(lhs.m_data) * rhs);
+		}
+		bfloat16 operator*(const float &lhs, const bfloat16 &rhs) noexcept
+		{
+			return bfloat16(lhs * bfloat16_to_float(rhs.m_data));
+		}
+
 		bfloat16 operator/(const bfloat16 &lhs, const bfloat16 &rhs) noexcept
 		{
 			return bfloat16(bfloat16_to_float(lhs.m_data) / bfloat16_to_float(rhs.m_data));
+		}
+		bfloat16 operator/(const bfloat16 &lhs, const float &rhs) noexcept
+		{
+			return bfloat16(bfloat16_to_float(lhs.m_data) / rhs);
+		}
+		bfloat16 operator/(const float &lhs, const bfloat16 &rhs) noexcept
+		{
+			return bfloat16(lhs / bfloat16_to_float(rhs.m_data));
 		}
 
 		bfloat16& operator+=(bfloat16 &lhs, const bfloat16 &rhs) noexcept

@@ -11,18 +11,17 @@
 
 namespace
 {
-
 }
 
 namespace avocado
 {
 	namespace backend
 	{
-//		avStatus_t refMetricFunction(avContext_t context, avMetricType_t metricType, avScalar_t result, const avTensor_t output,
-//				const avTensor_t target)
-//		{
-//			return AVOCADO_STATUS_NOT_SUPPORTED;
-//		}
+		avStatus_t refMetricFunction(avContextDescriptor_t context, avMetricType_t metricType, void *result, const avTensorDescriptor_t outputDesc,
+				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
 	} /* namespace backend */
 } /* namespace avocado */
 

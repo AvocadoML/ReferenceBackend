@@ -32,6 +32,202 @@ namespace avocado
 		{
 			return std::numeric_limits<T>::epsilon();
 		}
+		template<typename T>
+		struct max_value
+		{
+				static T get() noexcept
+				{
+					return std::numeric_limits<T>::max();
+				}
+		};
+		template<>
+		struct max_value<float16>
+		{
+				static float16 get() noexcept
+				{
+					return float16(65504.0f);
+				}
+		};
+		template<>
+		struct max_value<bfloat16>
+		{
+				static bfloat16 get() noexcept
+				{
+					return bfloat16(std::numeric_limits<float>::max());
+				}
+		};
+
+		/* Values of logical expressions */
+		template<typename T>
+		struct LogicalOp
+		{
+				static T value_of(bool condition) noexcept
+				{
+					T result;
+					if (condition == true)
+						std::memset(&result, -1, sizeof(T));
+					else
+						std::memset(&result, 0, sizeof(T));
+					return result;
+				}
+		};
+		template<>
+		struct LogicalOp<float16>
+		{
+				static float16 value_of(bool condition) noexcept
+				{
+					if (condition == true)
+						return float16(static_cast<unsigned short>(-1));
+					else
+						return float16(static_cast<unsigned short>(0));
+				}
+		};
+		template<>
+		struct LogicalOp<bfloat16>
+		{
+				static bfloat16 value_of(bool condition) noexcept
+				{
+					if (condition == true)
+						return bfloat16(static_cast<unsigned short>(-1));
+					else
+						return bfloat16(static_cast<unsigned short>(0));
+				}
+		};
+
+		/* Logical and */
+		template<typename T>
+		struct LogicalAnd
+		{
+				static T value(T lhs, T rhs) noexcept
+				{
+					return lhs & rhs;
+				}
+		};
+		template<>
+		struct LogicalAnd<float>
+		{
+				static float value(float lhs, float rhs) noexcept
+				{
+					static_assert(sizeof(float) == sizeof(uint32_t));
+					uint32_t tmp1, tmp2;
+					std::memcpy(&tmp1, &lhs, sizeof(float));
+					std::memcpy(&tmp2, &rhs, sizeof(float));
+					tmp1 = tmp1 & tmp2;
+					float result;
+					std::memcpy(&result, &tmp1, sizeof(float));
+					return result;
+				}
+		};
+		template<>
+		struct LogicalAnd<double>
+		{
+				static double value(double lhs, double rhs) noexcept
+				{
+					static_assert(sizeof(double) == sizeof(uint64_t));
+					uint64_t tmp1, tmp2;
+					std::memcpy(&tmp1, &lhs, sizeof(double));
+					std::memcpy(&tmp2, &rhs, sizeof(double));
+					tmp1 = tmp1 & tmp2;
+					double result;
+					std::memcpy(&result, &tmp1, sizeof(double));
+					return result;
+				}
+		};
+
+		/* Logical Or */
+		template<typename T>
+		struct LogicalOr
+		{
+				static T value(T lhs, T rhs) noexcept
+				{
+					return lhs | rhs;
+				}
+		};
+		template<>
+		struct LogicalOr<float>
+		{
+				static float value(float lhs, float rhs) noexcept
+				{
+					static_assert(sizeof(float) == sizeof(uint32_t));
+					uint32_t tmp1, tmp2;
+					std::memcpy(&tmp1, &lhs, sizeof(float));
+					std::memcpy(&tmp2, &rhs, sizeof(float));
+					tmp1 = tmp1 | tmp2;
+					float result;
+					std::memcpy(&result, &tmp1, sizeof(float));
+					return result;
+				}
+		};
+		template<>
+		struct LogicalOr<double>
+		{
+				static double value(double lhs, double rhs) noexcept
+				{
+					static_assert(sizeof(double) == sizeof(uint64_t));
+					uint64_t tmp1, tmp2;
+					std::memcpy(&tmp1, &lhs, sizeof(double));
+					std::memcpy(&tmp2, &rhs, sizeof(double));
+					tmp1 = tmp1 | tmp2;
+					double result;
+					std::memcpy(&result, &tmp1, sizeof(double));
+					return result;
+				}
+		};
+
+		/* Logical Not */
+		template<typename T>
+		struct LogicalNot
+		{
+				static T value(T x) noexcept
+				{
+					return ~x;
+				}
+		};
+		template<>
+		struct LogicalNot<float>
+		{
+				static float value(float x) noexcept
+				{
+					static_assert(sizeof(float) == sizeof(uint32_t));
+					uint32_t tmp;
+					std::memcpy(&tmp, &x, sizeof(float));
+					tmp = ~tmp;
+					float result;
+					std::memcpy(&result, &tmp, sizeof(float));
+					return result;
+				}
+		};
+		template<>
+		struct LogicalNot<double>
+		{
+				static double value(double x) noexcept
+				{
+					static_assert(sizeof(double) == sizeof(uint64_t));
+					uint64_t tmp;
+					std::memcpy(&tmp, &x, sizeof(double));
+					tmp = ~tmp;
+					double result;
+					std::memcpy(&result, &tmp, sizeof(double));
+					return result;
+				}
+		};
+
+		inline float mod(float x, float y) noexcept
+		{
+			return fmodf(x, y);
+		}
+		inline double mod(double x, double y) noexcept
+		{
+			return fmod(x, y);
+		}
+		inline float16 mod(float16 x, float16 y) noexcept
+		{
+			return float16(fmodf(static_cast<float>(x), static_cast<float>(y)));
+		}
+		inline bfloat16 mod(bfloat16 x, bfloat16 y) noexcept
+		{
+			return bfloat16(fmodf(static_cast<float>(x), static_cast<float>(y)));
+		}
 
 		inline float log(float x) noexcept
 		{
@@ -118,21 +314,91 @@ namespace avocado
 			return bfloat16(log1pf(static_cast<float>(x)));
 		}
 
-		inline float fabs(float x) noexcept
+		inline float abs(float x) noexcept
 		{
 			return fabsf(x);
 		}
-		inline double fabs(double x) noexcept
+		inline double abs(double x) noexcept
 		{
 			return fabs(x);
 		}
-		inline float16 fabs(float16 x) noexcept
+		inline float16 abs(float16 x) noexcept
 		{
 			return float16(fabsf(static_cast<float>(x)));
 		}
-		inline bfloat16 fabs(bfloat16 x) noexcept
+		inline bfloat16 abs(bfloat16 x) noexcept
 		{
 			return bfloat16(fabsf(static_cast<float>(x)));
+		}
+
+		/* trigonometric functions */
+		inline float sin(float x) noexcept
+		{
+			return sinf(x);
+		}
+		inline double sin(double x) noexcept
+		{
+			return sin(x);
+		}
+		inline float16 sin(float16 x) noexcept
+		{
+			return float16(sinf(static_cast<float>(x)));
+		}
+		inline bfloat16 sin(bfloat16 x) noexcept
+		{
+			return bfloat16(sinf(static_cast<float>(x)));
+		}
+
+		inline float cos(float x) noexcept
+		{
+			return cosf(x);
+		}
+		inline double cos(double x) noexcept
+		{
+			return cos(x);
+		}
+		inline float16 cos(float16 x) noexcept
+		{
+			return float16(cosf(static_cast<float>(x)));
+		}
+		inline bfloat16 cos(bfloat16 x) noexcept
+		{
+			return bfloat16(cosf(static_cast<float>(x)));
+		}
+
+		inline float tan(float x) noexcept
+		{
+			return tanf(x);
+		}
+		inline double tan(double x) noexcept
+		{
+			return tan(x);
+		}
+		inline float16 tan(float16 x) noexcept
+		{
+			return float16(tanf(static_cast<float>(x)));
+		}
+		inline bfloat16 tan(bfloat16 x) noexcept
+		{
+			return bfloat16(tanf(static_cast<float>(x)));
+		}
+
+		/* arithmetic functions */
+		inline float sqrt(float x) noexcept
+		{
+			return sqrtf(x);
+		}
+		inline double sqrt(double x) noexcept
+		{
+			return sqrt(x);
+		}
+		inline float16 sqrt(float16 x) noexcept
+		{
+			return float16(sqrtf(static_cast<float>(x)));
+		}
+		inline bfloat16 sqrt(bfloat16 x) noexcept
+		{
+			return bfloat16(sqrtf(static_cast<float>(x)));
 		}
 
 		template<typename T>

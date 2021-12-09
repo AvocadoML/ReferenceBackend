@@ -27,19 +27,6 @@ namespace
 			int x0, x1, x2, x3;
 	};
 
-	int getIndex(const TensorDescriptor &shape, std::initializer_list<int> index)
-	{
-		assert(shape.nbDims() == static_cast<int>(index.size()));
-		int result = 0;
-		int tmp = 1;
-		for (int i = index.size() - 1; i >= 0; i--)
-		{
-			result += index.begin()[i] * tmp;
-			tmp *= shape.dimension(i);
-		}
-		return result;
-	}
-
 	template<typename T>
 	class Tile
 	{
@@ -196,82 +183,84 @@ namespace
 	}
 
 	template<typename T>
-	Tile<T> extract_tile_from_tensor(const TensorDescriptor &tensor, int tileSize, int4 tileBegin, T paddedValue = zero<T>())
+	Tile<T> extract_tile_from_tensor(const TensorDescriptor &desc, const T *mem, int tileSize, int4 tileBegin, T paddedValue = zero<T>())
 	{
-		assert(tensor.nbDims() == 4);
+		assert(desc.nbDims() == 4);
 		Tile<T> result(tileSize, tileSize);
-//		for (int i = 0; i < tileSize; i++)
-//			for (int j = 0; j < tileSize; j++)
-//			{
-//				int x = tileBegin.x1 + i;
-//				int y = tileBegin.x2 + j;
-//				if (x >= 0 and x < dimension(tensor, 1) and y >= 0 and y < dimension(tensor, 2))
-//					result.at(i, j) = data < T > (tensor)[getIndex(tensor->shape, { tileBegin.x0, x, y, tileBegin.x3 })];
-//				else
-//					result.at(i, j) = paddedValue;
-//			}
+		for (int i = 0; i < tileSize; i++)
+			for (int j = 0; j < tileSize; j++)
+			{
+				int x = tileBegin.x1 + i;
+				int y = tileBegin.x2 + j;
+				if (x >= 0 and x < desc.dimension(1) and y >= 0 and y < desc.dimension(2))
+					result.at(i, j) = mem[desc.getIndex( { tileBegin.x0, x, y, tileBegin.x3 })];
+				else
+					result.at(i, j) = paddedValue;
+			}
 		return result;
 	}
 	template<typename T>
-	Tile<T> extract_tile_from_matrix(const TensorDescriptor &matrices, int tileSize, int2 tileBegin)
+	Tile<T> extract_tile_from_matrix(const TensorDescriptor &desc, const T *mem, int tileSize, int2 tileBegin)
 	{
-		assert(matrices.nbDims() == 3);
+		assert(desc.nbDims() == 3);
 		Tile<T> result(tileSize, tileSize);
-//		for (int i = 0; i < tileSize; i++)
-//			for (int j = 0; j < tileSize; j++)
-//				result.at(i, j) = data < T > (matrices)[getIndex(matrices->shape, { i * tileSize + j, tileBegin.x0, tileBegin.x1 })];
+		for (int i = 0; i < tileSize; i++)
+			for (int j = 0; j < tileSize; j++)
+				result.at(i, j) = mem[desc.getIndex( { i * tileSize + j, tileBegin.x0, tileBegin.x1 })];
 		return result;
 	}
 	template<typename T>
-	void insert_tile_to_tensor(const Tile<T> &tile, TensorDescriptor & tensor, int4 tileBegin)
+	void insert_tile_to_tensor(const Tile<T> &tile, const TensorDescriptor &desc, T *mem, int4 tileBegin)
 	{
-		assert(tensor.nbDims() == 4);
-//		for (int i = 0; i < tile.rows(); i++)
-//			for (int j = 0; j < tile.cols(); j++)
-//			{
-//				int x = tileBegin.x1 + i;
-//				int y = tileBegin.x2 + j;
-//				if (x >= 0 and x < dimension(tensor, 1) and y >= 0 and y < dimension(tensor, 2))
-//					data < T > (tensor)[getIndex(tensor->shape, { tileBegin.x0, x, y, tileBegin.x3 })] = tile.at(i, j);
-//			}
+		assert(desc.nbDims() == 4);
+		for (int i = 0; i < tile.rows(); i++)
+			for (int j = 0; j < tile.cols(); j++)
+			{
+				int x = tileBegin.x1 + i;
+				int y = tileBegin.x2 + j;
+				if (x >= 0 and x < desc.dimension(1) and y >= 0 and y < desc.dimension(2))
+					mem[desc.getIndex( { tileBegin.x0, x, y, tileBegin.x3 })] = tile.at(i, j);
+			}
 	}
 	template<typename T>
-	void insert_tile_to_matrix(const Tile<T> &tile, TensorDescriptor &matrices, int2 tileBegin)
+	void insert_tile_to_matrix(const Tile<T> &tile, const TensorDescriptor &desc, T *mem, int2 tileBegin)
 	{
-		assert(matrices.nbDims() == 3);
-//		for (int i = 0; i < tile.rows(); i++)
-//			for (int j = 0; j < tile.cols(); j++)
-//				data < T > (matrices)[getIndex(matrices->shape, { i * tile.cols() + j, tileBegin.x0, tileBegin.x1 })] = tile.at(i, j);
+		assert(desc.nbDims() == 3);
+		for (int i = 0; i < tile.rows(); i++)
+			for (int j = 0; j < tile.cols(); j++)
+				mem[desc.getIndex( { i * tile.cols() + j, tileBegin.x0, tileBegin.x1 })] = tile.at(i, j);
 	}
 
 	template<typename T>
-	void transform_weight(int tileSize, const TensorDescriptor &weights, TensorDescriptor &matrices, bool invert)
+	void transform_weight(int tileSize, const TensorDescriptor &wDesc, const T wMem, const TensorDescriptor &mDesc, T *mMem, bool invert)
 	{
-		const int output_filters = weights.firstDim();
-		const int kernel_size = weights.dimension(1);
-		const int input_filters = weights.lastDim();
+		assert(wDesc.dimension(1) == wDesc.dimension(2));
+		const int output_filters = wDesc.firstDim();
+		const int kernel_size = wDesc.dimension(1);
+		const int input_filters = wDesc.lastDim();
 
 		for (int i = 0; i < output_filters; i++)
 			for (int j = 0; j < input_filters; j++)
 			{
-				Tile<T> tile = extract_tile_from_tensor<T>(weights, kernel_size, { i, 0, 0, j });
+				Tile<T> tile = extract_tile_from_tensor<T>(wDesc, wMem, kernel_size, { i, 0, 0, j });
 				if (invert)
 					tile.invert();
 				Tile<T> transformed = Tile<T>::transform(getWeightTransform<T>(kernel_size, tileSize), tile);
-				insert_tile_to_matrix(transformed, matrices, { i, j });
+				insert_tile_to_matrix(transformed, mDesc, mMem, { i, j });
 			}
 	}
 	template<typename T>
-	void transform_input(int tileSize, const ConvolutionDescriptor &config, const TensorDescriptor &input, TensorDescriptor &matrices)
+	void transform_input(int tileSize, const ConvolutionDescriptor &config, const TensorDescriptor &xDesc, const T *xMem, TensorDescriptor &mDesc,
+			T *mMem)
 	{
-		const int batch_size = input.dimension(0);
-		const int height = input.dimension(1);
-		const int width = input.dimension(2);
-		const int filters = input.dimension(3);
+		const int batch_size = xDesc.dimension(0);
+		const int height = xDesc.dimension(1);
+		const int width = xDesc.dimension(2);
+		const int filters = xDesc.dimension(3);
 
-		const int padding_h = 0; //config->padding.dim[0];
-		const int padding_w = 0; //config->padding.dim[1];
-		const int kernel_size = 0; //config->filter.dim[0];
+		const int padding_h = config.padding[0];
+		const int padding_w = config.padding[1];
+		const int kernel_size = config.filter[1];
 		const int tiling_stride = tileSize + kernel_size - 1;
 
 		int tile_index = 0;
@@ -281,24 +270,23 @@ namespace
 				{
 					for (int f = 0; f < filters; f++)
 					{
-						std::cout << b << " " << h << " " << w << " " << f << '\n';
-						Tile<T> tile = extract_tile_from_tensor<T>(input, tiling_stride, { b, h + padding_h, w + padding_w, f });
-						tile.print();
+						Tile<T> tile = extract_tile_from_tensor<T>(xDesc, xMem, tiling_stride, { b, h + padding_h, w + padding_w, f });
 						Tile<T> transformed = Tile<T>::transform(getInputTransform<T>(kernel_size, tileSize), tile);
-						insert_tile_to_matrix(transformed, matrices, { tile_index, f });
+						insert_tile_to_matrix(transformed, mDesc, mMem, { tile_index, f });
 					}
 					tile_index++;
 				}
 	}
 	template<typename T>
-	void transform_output(int tileSize, const ConvolutionDescriptor &config, const TensorDescriptor &matrices, TensorDescriptor &output)
+	void transform_output(int tileSize, const ConvolutionDescriptor &config, const TensorDescriptor &mDesc, const T *mMem,
+			const TensorDescriptor &yDesc, T *yMem)
 	{
-		const int batch_size = output.dimension(0);
-		const int height = output.dimension(1);
-		const int width = output.dimension(2);
-		const int filters = output.dimension(3);
+		const int batch_size = yDesc.dimension(0);
+		const int height = yDesc.dimension(1);
+		const int width = yDesc.dimension(2);
+		const int filters = yDesc.dimension(3);
 
-		const int kernel_size = 0; //config->filter.dim[0];
+		const int kernel_size = config.filter[0];
 		const int tiling_stride = tileSize + kernel_size - 1;
 
 		int tile_index = 0;
@@ -308,11 +296,9 @@ namespace
 				{
 					for (int f = 0; f < filters; f++)
 					{
-						std::cout << b << " " << h << " " << w << " " << f << '\n';
-						Tile<T> tile = extract_tile_from_matrix<T>(matrices, tiling_stride, { tile_index, f });
-						tile.print();
+						Tile<T> tile = extract_tile_from_matrix<T>(mDesc, mMem, tiling_stride, { tile_index, f });
 						Tile<T> transformed = Tile<T>::transform(getInputTransform<T>(kernel_size, tileSize), tile);
-						insert_tile_to_tensor(transformed, output, { b, h, w, f });
+						insert_tile_to_tensor(transformed, yDesc, yMem, { b, h, w, f });
 					}
 					tile_index++;
 				}
@@ -519,6 +505,34 @@ namespace avocado
 {
 	namespace backend
 	{
+		avStatus_t refWinogradWeightTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int tileSize,
+				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+		avStatus_t refWinogradInputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int tileSize,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+		avStatus_t refWinogradOutputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int tileSize, const void *alpha,
+				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem, const avTensorDescriptor_t biasDesc, const avMemoryDescriptor_t biasMem, avActivationType_t activation)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+		avStatus_t refWinogradGradientTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int tileSize,
+				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+		avStatus_t refWinogradUpdateTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int tileSize, const void *alpha,
+				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc,
+				avMemoryDescriptor_t cMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
 //		avStatus_t refWinogradWeightTransform(avContext_t context, const avConvolution_t config, int tileSize, const avTensor_t weights,
 //				avTensor_t matrices)
 //		{

@@ -10,6 +10,7 @@
 
 #include "activations.hpp"
 #include "utils.hpp"
+#include "descriptors.hpp"
 
 #include <memory>
 #include <cassert>
@@ -18,11 +19,11 @@ namespace
 {
 	using namespace avocado::backend;
 
-	template<typename T>
-	void kernel_affine_forward(T alpha, T beta, const T *input, T *output, const T *weight, const T *bias, BroadcastedDimensions dims,
+	template<typename T, typename U>
+	void kernel_affine_forward(U alpha, U beta, const T *input, T *output, const T *weight, const T *bias, BroadcastedDimensions dims,
 			avActivationType_t type)
 	{
-		if (beta == zero<T>())
+		if (beta == zero<U>())
 			clear(output, volume(dims));
 		for (avSize_t i = 0; i < dims.first; i++)
 			for (avSize_t j = 0; j < dims.last; j++)
@@ -38,7 +39,7 @@ namespace
 		for (avSize_t i = 0; i < dims.first; i++)
 			for (avSize_t j = 0; j < dims.last; j++)
 			{
-				T tmp = scale[j] * (input[i * dims.last + j] - estimated_mean[j]) / sqrt(epsilon + estimated_variance[j]) + bias[j];
+				T tmp = scale[j] * (input[i * dims.last + j] - estimated_mean[j]) / std::sqrt(epsilon + estimated_variance[j]) + bias[j];
 				tmp = activation_forward(type, scale[j] * tmp + bias[j]);
 				output[i * dims.last + j] = alpha * tmp + beta * output[i * dims.last + j];
 			}
@@ -80,7 +81,7 @@ namespace
 			{
 				gradient_next[i * dims.last + j] = activation_backward(type, gradient_next[i * dims.last + j], output[i * dims.last + j]);
 
-				T stddev = sqrt(epsilon + savedVariance[j]);
+				T stddev = std::sqrt(epsilon + savedVariance[j]);
 				T in = (input[i * dims.last + j] - savedMean[j]) / stddev;
 				T tmp = -scale[j] * gradient_next[i * dims.last + j] / stddev;
 				d_sigma[j] += tmp * in;
@@ -92,7 +93,7 @@ namespace
 		for (avSize_t i = 0; i < dims.first; i++)
 			for (avSize_t j = 0; j < dims.last; j++)
 			{
-				T stddev = sqrt(epsilon + savedVariance[j]);
+				T stddev = std::sqrt(epsilon + savedVariance[j]);
 				T in = (input[i * dims.last + j] - savedMean[j]) / stddev;
 				T m = static_cast<T>(dims.first);
 				T tmp1 = scale[j] * gradient_next[i * dims.last + j] / stddev;
@@ -113,7 +114,7 @@ namespace
 		for (avSize_t i = 0; i < dims.first; i++)
 			for (avSize_t j = 0; j < dims.last; j++)
 			{
-				T in = (input[i * dims.last + j] - savedMean[j]) / sqrt(epsilon + savedVariance[j]);
+				T in = (input[i * dims.last + j] - savedMean[j]) / std::sqrt(epsilon + savedVariance[j]);
 				d_gamma[j] += gradient_next[i * dims.last + j] * in;
 				d_beta[j] += gradient_next[i * dims.last + j];
 			}
@@ -135,165 +136,144 @@ namespace avocado
 {
 	namespace backend
 	{
-//		avStatus_t refAffineForward(avContext_t context, const avScalar_t alpha, const avScalar_t beta, const avTensor_t input, avTensor_t output,
-//				const avTensor_t weight, const avTensor_t bias, const avActivationType_t activation)
-//		{
-//			assert(same_type(input, output, weight, bias));
-//			assert(same_shape(input, output));
-//			assert(same_shape(weight, bias));
-//
-//			BroadcastedDimensions dimensions = getBroadcastDimensions(output, bias);
-//			switch (output->dtype)
-//			{
-//				case AVOCADO_DTYPE_FLOAT16:
-//				{
-//					kernel_affine_forward<float16>(getDoubleValue(alpha), getDoubleValue(beta), data<float16>(input), data<float16>(output),
-//							data<float16>(weight), data<float16>(bias), dimensions, activation);
-//					break;
-//				}
-//				case AVOCADO_DTYPE_BFLOAT16:
-//				{
-//					kernel_affine_forward<bfloat16>(getDoubleValue(alpha), getDoubleValue(beta), data<bfloat16>(input), data<bfloat16>(output),
-//							data<bfloat16>(weight), data<bfloat16>(bias), dimensions, activation);
-//					break;
-//				}
-//				case AVOCADO_DTYPE_FLOAT32:
-//				{
-//					kernel_affine_forward<float>(getDoubleValue(alpha), getDoubleValue(beta), data<float>(input), data<float>(output),
-//							data<float>(weight), data<float>(bias), dimensions, activation);
-//					break;
-//				}
-//				case AVOCADO_DTYPE_FLOAT64:
-//				{
-//					kernel_affine_forward<double>(getDoubleValue(alpha), getDoubleValue(beta), data<double>(input), data<double>(output),
-//							data<double>(weight), data<double>(bias), dimensions, activation);
-//					break;
-//				}
-//				default:
-//					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-//			}
-//			return AVOCADO_STATUS_SUCCESS;
-//		}
-//		avStatus_t refBatchNormInference(avContext_t context, const avScalar_t alpha, const avScalar_t beta, const avTensor_t input,
-//				avTensor_t output, const avTensor_t scale, const avTensor_t bias, const avTensor_t estimatedMean, const avTensor_t estimatedVariance,
-//				double epsilon, const avActivationType_t activation)
-//		{
-//			assert(same_type(input, output, scale, bias, estimatedMean, estimatedVariance));
-//			assert(same_shape(input, output));
-//			assert(same_shape(scale, bias, estimatedMean, estimatedVariance));
-//
-//			BroadcastedDimensions dimensions = getBroadcastDimensions(output, bias);
-//			switch (output->dtype)
-//			{
-//				case AVOCADO_DTYPE_FLOAT32:
-//				{
-//					kernel_batchnorm_inference<float>(getDoubleValue(alpha), getDoubleValue(beta), data<float>(input), data<float>(output),
-//							data<float>(scale), data<float>(bias), data<float>(estimatedMean), data<float>(estimatedVariance), epsilon, dimensions,
-//							activation);
-//					break;
-//				}
-//				case AVOCADO_DTYPE_FLOAT64:
-//				{
-//					kernel_batchnorm_inference<double>(getDoubleValue(alpha), getDoubleValue(beta), data<double>(input), data<double>(output),
-//							data<double>(scale), data<double>(bias), data<double>(estimatedMean), data<double>(estimatedVariance), epsilon,
-//							dimensions, activation);
-//					break;
-//				}
-//				default:
-//					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-//			}
-//			return AVOCADO_STATUS_SUCCESS;
-//		}
-//		avStatus_t refBatchNormForward(avContext_t context, const avScalar_t alpha, const avScalar_t beta, const avTensor_t input, avTensor_t output,
-//				const avTensor_t scale, const avTensor_t bias, avTensor_t savedMean, avTensor_t savedVariance, double epsilon,
-//				const avActivationType_t activation)
-//		{
-//			assert(same_type(input, output, scale, bias, savedMean, savedVariance));
-//			assert(same_shape(input, output));
-//			assert(same_shape(scale, bias, savedMean, savedVariance));
-//
-//			BroadcastedDimensions dimensions = getBroadcastDimensions(output, bias);
-//			switch (output->dtype)
-//			{
-//				case AVOCADO_DTYPE_FLOAT32:
-//				{
-//					kernel_batchnorm_forward<float>(getDoubleValue(alpha), getDoubleValue(beta), data<float>(input), data<float>(output),
-//							data<float>(scale), data<float>(bias), data<float>(savedMean), data<float>(savedVariance), epsilon, dimensions,
-//							activation);
-//					break;
-//				}
-//				case AVOCADO_DTYPE_FLOAT64:
-//				{
-//					kernel_batchnorm_forward<double>(getDoubleValue(alpha), getDoubleValue(beta), data<double>(input), data<double>(output),
-//							data<double>(scale), data<double>(bias), data<double>(savedMean), data<double>(savedVariance), epsilon, dimensions,
-//							activation);
-//					break;
-//				}
-//				default:
-//					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-//			}
-//			return AVOCADO_STATUS_SUCCESS;
-//		}
-//		avStatus_t refBatchNormBackward(avContext_t context, const avActivationType_t activation, const avScalar_t alpha, const avScalar_t beta,
-//				const avTensor_t input, const avTensor_t output, avTensor_t gradientPrev, avTensor_t gradientNext, const avTensor_t scale,
-//				const avTensor_t savedMean, const avTensor_t savedVariance, double epsilon)
-//		{
-//			assert(same_type(input, output, gradientPrev, gradientNext, scale, savedMean, savedVariance));
-//			assert(same_shape(input, output, gradientPrev, gradientNext));
-//			assert(same_shape(scale, savedMean, savedVariance));
-//
-//			BroadcastedDimensions dimensions = getBroadcastDimensions(output, scale);
-//			switch (output->dtype)
-//			{
-//				case AVOCADO_DTYPE_FLOAT32:
-//				{
-//					kernel_batchnorm_backward<float>(getDoubleValue(alpha), getDoubleValue(beta), data<float>(input), data<float>(output),
-//							data<float>(gradientPrev), data<float>(gradientNext), data<float>(scale), data<float>(savedMean),
-//							data<float>(savedVariance), epsilon, dimensions, activation);
-//					break;
-//				}
-//				case AVOCADO_DTYPE_FLOAT64:
-//				{
-//					kernel_batchnorm_backward<double>(getDoubleValue(alpha), getDoubleValue(beta), data<double>(input), data<double>(output),
-//							data<double>(gradientPrev), data<double>(gradientNext), data<double>(scale), data<double>(savedMean),
-//							data<double>(savedVariance), epsilon, dimensions, activation);
-//					break;
-//				}
-//				default:
-//					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-//			}
-//			return AVOCADO_STATUS_SUCCESS;
-//		}
-//		avStatus_t refBatchNormUpdate(avContext_t context, const avScalar_t alpha, const avScalar_t beta, const avTensor_t input,
-//				const avTensor_t gradientNext, avTensor_t scaleUpdate, avTensor_t biasUpdate, const avTensor_t savedMean,
-//				const avTensor_t savedVariance, double epsilon)
-//		{
-//			assert(same_type(input, gradientNext, scaleUpdate, biasUpdate, savedMean, savedVariance));
-//			assert(same_shape(input, gradientNext));
-//			assert(same_shape(scaleUpdate, biasUpdate, savedMean, savedVariance));
-//
-//			BroadcastedDimensions dimensions = getBroadcastDimensions(input, biasUpdate);
-//			switch (input->dtype)
-//			{
-//				case AVOCADO_DTYPE_FLOAT32:
-//				{
-//					kernel_batchnorm_update<float>(getDoubleValue(alpha), getDoubleValue(beta), data<float>(input), data<float>(gradientNext),
-//							data<float>(scaleUpdate), data<float>(biasUpdate), data<float>(savedMean), data<float>(savedVariance), epsilon,
-//							dimensions);
-//					break;
-//				}
-//				case AVOCADO_DTYPE_FLOAT64:
-//				{
-//					kernel_batchnorm_update<double>(getDoubleValue(alpha), getDoubleValue(beta), data<double>(input), data<double>(gradientNext),
-//							data<double>(scaleUpdate), data<double>(biasUpdate), data<double>(savedMean), data<double>(savedVariance), epsilon,
-//							dimensions);
-//					break;
-//				}
-//				default:
-//					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-//			}
-//			return AVOCADO_STATUS_SUCCESS;
-//		}
+		avStatus_t refAffineForward(avContextDescriptor_t context, avActivationType_t activation, const avTensorDescriptor_t wDesc,
+				const avMemoryDescriptor_t wMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem)
+		{
+			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(yDesc), getTensor(xDesc));
+			switch (getTensor(xDesc).dtype())
+			{
+				case AVOCADO_DTYPE_FLOAT16:
+					kernel_affine_forward<float16>(getAlphaValue(alpha), getBetaValue(beta), getPointer<float16>(xMem), getPointer<float16>(yMem),
+							getPointer<float16>(wMem), getPointer<float16>(bMem), dimensions, activation);
+					break;
+				case AVOCADO_DTYPE_BFLOAT16:
+					kernel_affine_forward(getAlphaValue(alpha), getBetaValue(beta), getPointer<bfloat16>(xMem), getPointer<bfloat16>(yMem),
+							getPointer<bfloat16>(wMem), getPointer<bfloat16>(bMem), dimensions, activation);
+					break;
+				case AVOCADO_DTYPE_FLOAT32:
+					kernel_affine_forward(getAlphaValue(alpha), getBetaValue(beta), getPointer<float>(xMem), getPointer<float>(yMem),
+							getPointer<float>(wMem), getPointer<float>(bMem), dimensions, activation);
+					break;
+				case AVOCADO_DTYPE_FLOAT64:
+					kernel_affine_forward(getAlphaValue<double>(alpha), getBetaValue<double>(beta), getPointer<double>(xMem),
+							getPointer<double>(yMem), getPointer<double>(wMem), getPointer<double>(bMem), dimensions, activation);
+					break;
+				default:
+					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+			}
+			return AVOCADO_STATUS_SUCCESS;
+		}
+		avStatus_t refBatchNormInference(avContextDescriptor_t context, avActivationType_t activation, const void *alpha,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem, const avTensorDescriptor_t scaleBiasMeanVarDesc, const avMemoryDescriptor_t scaleMem,
+				const avMemoryDescriptor_t biasMem, const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, double epsilon)
+		{
+			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(xDesc), getTensor(scaleBiasMeanVarDesc));
+			switch (getTensor(xDesc).dtype())
+			{
+				case AVOCADO_DTYPE_FLOAT32:
+				{
+					kernel_batchnorm_inference<float>(getAlphaValue(alpha), getBetaValue(beta), getPointer<float>(xMem), getPointer<float>(yMem),
+							getPointer<float>(scaleMem), getPointer<float>(biasMem), getPointer<float>(meanMem), getPointer<float>(varianceMem),
+							epsilon, dimensions, activation);
+					break;
+				}
+				case AVOCADO_DTYPE_FLOAT64:
+				{
+					kernel_batchnorm_inference<double>(getAlphaValue<double>(alpha), getBetaValue<double>(beta), getPointer<double>(xMem),
+							getPointer<double>(yMem), getPointer<double>(scaleMem), getPointer<double>(biasMem), getPointer<double>(meanMem),
+							getPointer<double>(varianceMem), epsilon, dimensions, activation);
+					break;
+				}
+				default:
+					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+			}
+			return AVOCADO_STATUS_SUCCESS;
+		}
+		avStatus_t refBatchNormForward(avContextDescriptor_t context, avActivationType_t activation, const void *alpha,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem, const avTensorDescriptor_t scaleBiasMeanVarDesc, const avMemoryDescriptor_t scaleMem,
+				const avMemoryDescriptor_t biasMem, avMemoryDescriptor_t meanMem, avMemoryDescriptor_t varianceMem, double epsilon)
+		{
+			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(xDesc), getTensor(scaleBiasMeanVarDesc));
+			switch (getTensor(xDesc).dtype())
+			{
+				case AVOCADO_DTYPE_FLOAT32:
+				{
+					kernel_batchnorm_forward<float>(getAlphaValue(alpha), getBetaValue(beta), getPointer<float>(xMem), getPointer<float>(yMem),
+							getPointer<float>(scaleMem), getPointer<float>(biasMem), getPointer<float>(meanMem), getPointer<float>(varianceMem),
+							epsilon, dimensions, activation);
+					break;
+				}
+				case AVOCADO_DTYPE_FLOAT64:
+				{
+					kernel_batchnorm_forward<double>(getAlphaValue<double>(alpha), getBetaValue<double>(beta), getPointer<double>(xMem),
+							getPointer<double>(yMem), getPointer<double>(scaleMem), getPointer<double>(biasMem), getPointer<double>(meanMem),
+							getPointer<double>(varianceMem), epsilon, dimensions, activation);
+					break;
+				}
+				default:
+					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+			}
+			return AVOCADO_STATUS_SUCCESS;
+		}
+		avStatus_t refBatchNormBackward(avContextDescriptor_t context, avActivationType_t activation, const void *alpha,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t yDesc, const avMemoryDescriptor_t yMem,
+				const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avTensorDescriptor_t dyDesc,
+				avMemoryDescriptor_t dyMem, const avTensorDescriptor_t scaleMeanVarDesc, const avMemoryDescriptor_t scaleMem,
+				const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, double epsilon)
+		{
+			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(xDesc), getTensor(scaleMeanVarDesc));
+			switch (getTensor(xDesc).dtype())
+			{
+				case AVOCADO_DTYPE_FLOAT32:
+				{
+					kernel_batchnorm_backward<float>(getAlphaValue(alpha), getBetaValue(beta), getPointer<float>(xMem), getPointer<float>(yMem),
+							getPointer<float>(dxMem), getPointer<float>(dyMem), getPointer<float>(scaleMem), getPointer<float>(meanMem),
+							getPointer<float>(varianceMem), epsilon, dimensions, activation);
+					break;
+				}
+				case AVOCADO_DTYPE_FLOAT64:
+				{
+					kernel_batchnorm_backward<double>(getAlphaValue<double>(alpha), getBetaValue<double>(beta), getPointer<double>(xMem),
+							getPointer<double>(yMem), getPointer<double>(dxMem), getPointer<double>(dyMem), getPointer<double>(scaleMem),
+							getPointer<double>(meanMem), getPointer<double>(varianceMem), epsilon, dimensions, activation);
+					break;
+				}
+				default:
+					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+			}
+			return AVOCADO_STATUS_SUCCESS;
+		}
+		avStatus_t refBatchNormUpdate(avContextDescriptor_t context, const void *alpha, const avTensorDescriptor_t xDesc,
+				const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, const void *beta,
+				const avTensorDescriptor_t scaleBiasDesc, avMemoryDescriptor_t scaleUpdateMem, avMemoryDescriptor_t biasUpdateMem,
+				const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, double epsilon)
+		{
+			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(xDesc), getTensor(scaleUpdateMem));
+			switch (getTensor(xDesc).dtype())
+			{
+				case AVOCADO_DTYPE_FLOAT32:
+				{
+					kernel_batchnorm_update<float>(getAlphaValue(alpha), getBetaValue(beta), getPointer<float>(xMem), getPointer<float>(dyMem),
+							getPointer<float>(scaleUpdateMem), getPointer<float>(biasUpdateMem), getPointer<float>(meanMem),
+							getPointer<float>(varianceMem), epsilon, dimensions);
+					break;
+				}
+				case AVOCADO_DTYPE_FLOAT64:
+				{
+					kernel_batchnorm_update<double>(getAlphaValue(alpha), getBetaValue(beta), getPointer<double>(xMem), getPointer<double>(dyMem),
+							getPointer<double>(scaleUpdateMem), getPointer<double>(biasUpdateMem), getPointer<double>(meanMem),
+							getPointer<double>(varianceMem), epsilon, dimensions);
+					break;
+				}
+				default:
+					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+			}
+			return AVOCADO_STATUS_SUCCESS;
+		}
 
 	} /* namespace backend */
 } /* namespace avocado */

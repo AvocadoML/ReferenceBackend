@@ -40,7 +40,7 @@ namespace avocado
 				case AVOCADO_ACTIVATION_SOFTPLUS:
 					return log1p(exp(input));
 				case AVOCADO_ACTIVATION_SOFTSIGN:
-					return input / (fabs(input) + one<T>());
+					return input / (abs(input) + one<T>());
 				default:
 					return input;
 			}
@@ -67,7 +67,7 @@ namespace avocado
 				case AVOCADO_ACTIVATION_SOFTPLUS:
 					return gradient * expm1(output) / exp(output);
 				case AVOCADO_ACTIVATION_SOFTSIGN:
-					return gradient / square(fabs(output / (one<T>() - sgn(output) * output)) + one<T>());
+					return gradient / square(abs(output / (one<T>() - sgn(output) * output)) + one<T>());
 				case AVOCADO_ACTIVATION_SOFTMAX:
 					return gradient * (one<T>() - output) * output;
 				default:

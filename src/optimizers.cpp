@@ -7,9 +7,10 @@
 
 #include <avocado/reference_backend.h>
 #include <avocado/backend/backend_descriptors.hpp>
-#include "utils.hpp"
 
-#define ROUND_SMALL_TO_ZERO(x, eps) if ((x) > -eps && (x) < eps) x = 0.0f;
+#include "utils.hpp"
+#include "descriptors.hpp"
+
 namespace
 {
 	using namespace avocado::backend;
@@ -47,94 +48,94 @@ namespace
 		{
 			momentum[i] = momentum[i] * beta1 + update[i] * (one<T>() - beta1);
 			variance[i] = variance[i] * beta2 + update[i] * update[i] * (one<T>() - beta2);
-			T tmp = -momentum[i] * learning_rate / sqrt(variance[i] + eps<T>());
+			T tmp = -momentum[i] * learning_rate / std::sqrt(variance[i] + eps<T>());
 
 			weight[i] = round_small_to_zero(weight[i] + tmp);
 		}
 	}
 
-//	avStatus_t sgd_helper(const avOptimizer_t optimizer, avTensor_t weight, const avTensor_t update, avTensor_t workspace1)
-//	{
-//		avSize_t elements = volume(weight);
-//		bool use_momentum = optimizer->flags[0];
-//		bool use_nesterov = optimizer->flags[1];
-//
-//		switch (weight->dtype)
-//		{
-//			case AVOCADO_DTYPE_FLOAT32:
-//			{
-//				float beta = optimizer->coef[0];
-//				float learning_rate = optimizer->learning_rate;
-//				float *momentum = (workspace1 == nullptr) ? nullptr : data<float>(workspace1);
-//				kernel_learn_sgd(data<float>(weight), data<float>(update), momentum, elements, learning_rate, beta, use_momentum, use_nesterov);
-//				break;
-//			}
-//			case AVOCADO_DTYPE_FLOAT64:
-//			{
-//				double beta = optimizer->coef[0];
-//				double learning_rate = optimizer->learning_rate;
-//				double *momentum = (workspace1 == nullptr) ? nullptr : data<double>(workspace1);
-//				kernel_learn_sgd(data<double>(weight), data<double>(update), momentum, elements, learning_rate, beta, use_momentum, use_nesterov);
-//				break;
-//			}
-//			default:
-//				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-//		}
-//		return AVOCADO_STATUS_SUCCESS;
-//	}
-//	avStatus_t adam_helper(const avOptimizer_t optimizer, avTensor_t weight, const avTensor_t update, avTensor_t workspace1, avTensor_t workspace2)
-//	{
-//		avSize_t elements = volume(weight);
-//		switch (weight->dtype)
-//		{
-//			case AVOCADO_DTYPE_FLOAT32:
-//			{
-//				float beta1 = optimizer->coef[0];
-//				float beta2 = optimizer->coef[1];
-//				float learning_rate = optimizer->learning_rate;
-//				kernel_learn_adam(data<float>(weight), data<float>(update), data<float>(workspace1), data<float>(workspace2), elements, learning_rate,
-//						beta1, beta2);
-//				break;
-//			}
-//			case AVOCADO_DTYPE_FLOAT64:
-//			{
-//				double beta1 = optimizer->coef[0];
-//				double beta2 = optimizer->coef[1];
-//				double learning_rate = optimizer->learning_rate;
-//				kernel_learn_adam(data<double>(weight), data<double>(update), data<double>(workspace1), data<double>(workspace2), elements,
-//						learning_rate, beta1, beta2);
-//				break;
-//			}
-//			default:
-//				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-//		}
-//		return AVOCADO_STATUS_SUCCESS;
-//	}
+	avStatus_t sgd_helper(const OptimizerDescriptor &optimizer, const TensorDescriptor &weightDesc, avMemoryDescriptor_t weight,
+			const avMemoryDescriptor_t update, avMemoryDescriptor_t workspace1)
+	{
+		const avSize_t elements = weightDesc.volume();
+		bool use_momentum = optimizer.flags[0];
+		bool use_nesterov = optimizer.flags[1];
+
+		switch (weightDesc.dtype())
+		{
+			case AVOCADO_DTYPE_FLOAT32:
+			{
+				float beta = optimizer.coef[0];
+				float learning_rate = optimizer.learning_rate;
+				float *momentum = use_momentum ? nullptr : getPointer<float>(workspace1);
+				kernel_learn_sgd(getPointer<float>(weight), getPointer<float>(update), momentum, elements, learning_rate, beta, use_momentum,
+						use_nesterov);
+				break;
+			}
+			case AVOCADO_DTYPE_FLOAT64:
+			{
+				double beta = optimizer.coef[0];
+				double learning_rate = optimizer.learning_rate;
+				double *momentum = use_momentum ? nullptr : getPointer<double>(workspace1);
+				kernel_learn_sgd(getPointer<double>(weight), getPointer<double>(update), momentum, elements, learning_rate, beta, use_momentum,
+						use_nesterov);
+				break;
+			}
+			default:
+				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+		}
+		return AVOCADO_STATUS_SUCCESS;
+	}
+	avStatus_t adam_helper(const OptimizerDescriptor &optimizer, const TensorDescriptor &weightDesc, avMemoryDescriptor_t weight,
+			const avMemoryDescriptor_t update, avMemoryDescriptor_t workspace1, avMemoryDescriptor_t workspace2)
+	{
+		const avSize_t elements = weightDesc.volume();
+		switch (weightDesc.dtype())
+		{
+			case AVOCADO_DTYPE_FLOAT32:
+			{
+				float beta1 = optimizer.coef[0];
+				float beta2 = optimizer.coef[1];
+				float learning_rate = optimizer.learning_rate;
+				kernel_learn_adam(getPointer<float>(weight), getPointer<float>(update), getPointer<float>(workspace1), getPointer<float>(workspace2),
+						elements, learning_rate, beta1, beta2);
+				break;
+			}
+			case AVOCADO_DTYPE_FLOAT64:
+			{
+				double beta1 = optimizer.coef[0];
+				double beta2 = optimizer.coef[1];
+				double learning_rate = optimizer.learning_rate;
+				kernel_learn_adam(getPointer<double>(weight), getPointer<double>(update), getPointer<double>(workspace1),
+						getPointer<double>(workspace2), elements, learning_rate, beta1, beta2);
+				break;
+			}
+			default:
+				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+		}
+		return AVOCADO_STATUS_SUCCESS;
+	}
 }
 
 namespace avocado
 {
 	namespace backend
 	{
-//		avStatus_t refOptimizerLearn(avContext_t context, const avOptimizer_t optimizer, avTensor_t weight, const avTensor_t update,
-//				avTensor_t workspace1, avTensor_t workspace2)
-//		{
-//			assert(context != nullptr);
-//			assert(optimizer != nullptr);
-//			assert(weight != nullptr);
-//			assert(update != nullptr);
-//
-//			switch (optimizer->type)
-//			{
-//				case AVOCADO_OPTIMIZER_SGD:
-//					return sgd_helper(optimizer, weight, update, workspace1);
-//				case AVOCADO_OPTIMIZER_ADAM:
-//					return adam_helper(optimizer, weight, update, workspace1, workspace2);
-//				default:
-//					return AVOCADO_STATUS_BAD_PARAM;
-//			}
-//			return AVOCADO_STATUS_SUCCESS;
-//		}
+		avStatus_t refOptimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t optimizer, const avTensorDescriptor_t weightDesc,
+				avMemoryDescriptor_t weightMem, const avTensorDescriptor_t updateDesc, const avTensorDescriptor_t updateMem,
+				avMemoryDescriptor_t workspace1, avMemoryDescriptor_t workspace2)
+		{
+			switch (getOptimizer(optimizer).type)
+			{
+				case AVOCADO_OPTIMIZER_SGD:
+					return sgd_helper(getOptimizer(optimizer), getTensor(weightDesc), weightMem, updateMem, workspace1);
+				case AVOCADO_OPTIMIZER_ADAM:
+					return adam_helper(getOptimizer(optimizer), getTensor(weightDesc), weightMem, updateMem, workspace1, workspace2);
+				default:
+					return AVOCADO_STATUS_BAD_PARAM;
+			}
+			return AVOCADO_STATUS_SUCCESS;
+		}
 	} /* namespace backend */
 } /* namespace avocado */
 

@@ -17,6 +17,7 @@ namespace avocado
 				unsigned short m_data = 0;
 			public:
 				float16() = default;
+				float16(unsigned short raw_binary_value) noexcept;
 				float16(int i) noexcept;
 				float16(long long i) noexcept;
 				float16(float f) noexcept;
@@ -36,14 +37,29 @@ namespace avocado
 				friend bool operator<=(const float16 &lhs, const float16 &rhs) noexcept;
 				friend bool operator>(const float16 &lhs, const float16 &rhs) noexcept;
 				friend bool operator>=(const float16 &lhs, const float16 &rhs) noexcept;
+				friend float16 operator&(const float16 &lhs, const float16 &rhs) noexcept;
+				friend float16 operator|(const float16 &lhs, const float16 &rhs) noexcept;
+				friend float16 operator^(const float16 &lhs, const float16 &rhs) noexcept;
+				friend float16 operator~(const float16 &a) noexcept;
 
 				friend float16 operator+(const float16 &a) noexcept;
 				friend float16 operator-(const float16 &a) noexcept;
 
 				friend float16 operator+(const float16 &lhs, const float16 &rhs) noexcept;
+				friend float16 operator+(const float16 &lhs, const float &rhs) noexcept;
+				friend float16 operator+(const float &lhs, const float16 &rhs) noexcept;
+
 				friend float16 operator-(const float16 &lhs, const float16 &rhs) noexcept;
+				friend float16 operator-(const float16 &lhs, const float &rhs) noexcept;
+				friend float16 operator-(const float &lhs, const float16 &rhs) noexcept;
+
 				friend float16 operator*(const float16 &lhs, const float16 &rhs) noexcept;
+				friend float16 operator*(const float16 &lhs, const float &rhs) noexcept;
+				friend float16 operator*(const float &lhs, const float16 &rhs) noexcept;
+
 				friend float16 operator/(const float16 &lhs, const float16 &rhs) noexcept;
+				friend float16 operator/(const float16 &lhs, const float &rhs) noexcept;
+				friend float16 operator/(const float &lhs, const float16 &rhs) noexcept;
 
 				friend float16& operator+=(float16 &lhs, const float16 &rhs) noexcept;
 				friend float16& operator-=(float16 &lhs, const float16 &rhs) noexcept;
@@ -56,6 +72,7 @@ namespace avocado
 				unsigned short m_data = 0;
 			public:
 				bfloat16() = default;
+				bfloat16(unsigned short raw_binary_value) noexcept;
 				bfloat16(int i) noexcept;
 				bfloat16(long long i) noexcept;
 				bfloat16(float f) noexcept;
@@ -75,14 +92,29 @@ namespace avocado
 				friend bool operator<=(const bfloat16 &lhs, const bfloat16 &rhs) noexcept;
 				friend bool operator>(const bfloat16 &lhs, const bfloat16 &rhs) noexcept;
 				friend bool operator>=(const bfloat16 &lhs, const bfloat16 &rhs) noexcept;
+				friend bfloat16 operator&(const bfloat16 &lhs, const bfloat16 &rhs) noexcept;
+				friend bfloat16 operator|(const bfloat16 &lhs, const bfloat16 &rhs) noexcept;
+				friend bfloat16 operator^(const bfloat16 &lhs, const bfloat16 &rhs) noexcept;
+				friend bfloat16 operator~(const bfloat16 &a) noexcept;
 
 				friend bfloat16 operator+(const bfloat16 &a) noexcept;
 				friend bfloat16 operator-(const bfloat16 &a) noexcept;
 
 				friend bfloat16 operator+(const bfloat16 &lhs, const bfloat16 &rhs) noexcept;
+				friend bfloat16 operator+(const bfloat16 &lhs, const float &rhs) noexcept;
+				friend bfloat16 operator+(const float &lhs, const bfloat16 &rhs) noexcept;
+
 				friend bfloat16 operator-(const bfloat16 &lhs, const bfloat16 &rhs) noexcept;
+				friend bfloat16 operator-(const bfloat16 &lhs, const float &rhs) noexcept;
+				friend bfloat16 operator-(const float &lhs, const bfloat16 &rhs) noexcept;
+
 				friend bfloat16 operator*(const bfloat16 &lhs, const bfloat16 &rhs) noexcept;
+				friend bfloat16 operator*(const bfloat16 &lhs, const float &rhs) noexcept;
+				friend bfloat16 operator*(const float &lhs, const bfloat16 &rhs) noexcept;
+
 				friend bfloat16 operator/(const bfloat16 &lhs, const bfloat16 &rhs) noexcept;
+				friend bfloat16 operator/(const bfloat16 &lhs, const float &rhs) noexcept;
+				friend bfloat16 operator/(const float &lhs, const bfloat16 &rhs) noexcept;
 
 				friend bfloat16& operator+=(bfloat16 &lhs, const bfloat16 &rhs) noexcept;
 				friend bfloat16& operator-=(bfloat16 &lhs, const bfloat16 &rhs) noexcept;

@@ -199,6 +199,35 @@ namespace avocado
 {
 	namespace backend
 	{
+		avStatus_t refIm2Col(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t aDesc,
+				const avMemoryDescriptor_t aMem, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+		avStatus_t refConvolutionBiasActivationForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
+				const void *beta, const avTensorDescriptor_t input, avTensorDescriptor_t output, const avTensorDescriptor_t weights,
+				const avTensorDescriptor_t bias, const avActivationType_t activation, const void *alpha2, const avTensorDescriptor_t add)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+		avStatus_t refConvolutionForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha, const void *beta,
+				const avTensorDescriptor_t input, avTensorDescriptor_t output, const avTensorDescriptor_t weights)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+		avStatus_t refConvolutionBackward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha, const void *beta,
+				avTensorDescriptor_t gradientPrev, avTensorDescriptor_t gradientNext, const avTensorDescriptor_t output,
+				const avTensorDescriptor_t weights, const avActivationType_t activation)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+		avStatus_t refConvolutionUpdate(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha, const void *beta,
+				const avTensorDescriptor_t input, const avTensorDescriptor_t gradientNext, avTensorDescriptor_t weightUpdate,
+				avTensorDescriptor_t biasUpdate)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
 //		avStatus_t refIm2Col(avContext_t context, const avConvolution_t config, const avTensor_t input, avTensor_t output)
 //		{
 //			return AVOCADO_STATUS_NOT_SUPPORTED;
