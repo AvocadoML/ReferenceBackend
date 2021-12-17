@@ -292,49 +292,49 @@ namespace
 	}
 
 	template<typename T>
-	T op_tensor(avOpTensorOp_t operation, T lhs, T rhs) noexcept
+	T op_tensor(avBinaryOp_t operation, T lhs, T rhs) noexcept
 	{
 		switch (operation)
 		{
-			case AVOCADO_OP_TENSOR_ADD:
+			case AVOCADO_BINARY_OP_ADD:
 				return lhs + rhs;
-			case AVOCADO_OP_TENSOR_ADD_SQUARE:
+			case AVOCADO_BINARY_OP_ADD_SQUARE:
 				return lhs + square(rhs);
-			case AVOCADO_OP_TENSOR_SUB:
+			case AVOCADO_BINARY_OP_SUB:
 				return lhs - rhs;
-			case AVOCADO_OP_TENSOR_MUL:
+			case AVOCADO_BINARY_OP_MUL:
 				return lhs * rhs;
-			case AVOCADO_OP_TENSOR_DIV:
+			case AVOCADO_BINARY_OP_DIV:
 				return lhs / rhs;
-			case AVOCADO_OP_TENSOR_MOD:
+			case AVOCADO_BINARY_OP_MOD:
 				return mod(lhs, rhs);
-			case AVOCADO_OP_TENSOR_POW:
+			case AVOCADO_BINARY_OP_POW:
 				return pow(lhs, rhs);
-			case AVOCADO_OP_TENSOR_MIN:
+			case AVOCADO_BINARY_OP_MIN:
 				return std::min(lhs, rhs);
-			case AVOCADO_OP_TENSOR_MAX:
+			case AVOCADO_BINARY_OP_MAX:
 				return std::max(lhs, rhs);
-			case AVOCADO_OP_TENSOR_COMPARE_EQ:
+			case AVOCADO_BINARY_OP_COMPARE_EQ:
 				return LogicalOp<T>::value_of(lhs == rhs);
-			case AVOCADO_OP_TENSOR_COMPARE_NEQ:
+			case AVOCADO_BINARY_OP_COMPARE_NEQ:
 				return LogicalOp<T>::value_of(lhs != rhs);
-			case AVOCADO_OP_TENSOR_COMPARE_GT:
+			case AVOCADO_BINARY_OP_COMPARE_GT:
 				return LogicalOp<T>::value_of(lhs > rhs);
-			case AVOCADO_OP_TENSOR_COMPARE_GE:
+			case AVOCADO_BINARY_OP_COMPARE_GE:
 				return LogicalOp<T>::value_of(lhs >= rhs);
-			case AVOCADO_OP_TENSOR_COMPARE_LT:
+			case AVOCADO_BINARY_OP_COMPARE_LT:
 				return LogicalOp<T>::value_of(lhs < rhs);
-			case AVOCADO_OP_TENSOR_COMPARE_LE:
+			case AVOCADO_BINARY_OP_COMPARE_LE:
 				return LogicalOp<T>::value_of(lhs <= rhs);
-			case AVOCADO_OP_TENSOR_LOGICAL_AND:
+			case AVOCADO_BINARY_OP_LOGICAL_AND:
 				return LogicalAnd<T>::value(lhs, rhs);
-			case AVOCADO_OP_TENSOR_LOGICAL_OR:
+			case AVOCADO_BINARY_OP_LOGICAL_OR:
 				return LogicalOr<T>::value(lhs, rhs);
 		}
 		return zero<T>();
 	}
 	template<typename T, typename U>
-	void kernel_op_tensor(T *dst, const T *src1, const T *src2, U alpha1, U alpha2, U beta, BroadcastedDimensions dims, avOpTensorOp_t operation)
+	void kernel_op_tensor(T *dst, const T *src1, const T *src2, U alpha1, U alpha2, U beta, BroadcastedDimensions dims, avBinaryOp_t operation)
 	noexcept
 	{
 		if (beta == zero<U>())
@@ -353,43 +353,43 @@ namespace
 	}
 
 	template<typename T>
-	T single_op_tensor(avOpSingleTensorOp_t operation, T x) noexcept
+	T single_op_tensor(avUnaryOp_t operation, T x) noexcept
 	{
 		switch (operation)
 		{
-			case AVOCADO_OP_SINGLE_TENSOR_ABS:
+			case AVOCADO_UNARY_OP_ABS:
 				return avocado::backend::abs(x);
-			case AVOCADO_OP_SINGLE_TENSOR_CEIL:
+			case AVOCADO_UNARY_OP_CEIL:
 //				return avocado::backend::ceil(x);
-			case AVOCADO_OP_SINGLE_TENSOR_COS:
+			case AVOCADO_UNARY_OP_COS:
 				return avocado::backend::cos(x);
-			case AVOCADO_OP_SINGLE_TENSOR_EXP:
+			case AVOCADO_UNARY_OP_EXP:
 				return avocado::backend::exp(x);
-			case AVOCADO_OP_SINGLE_TENSOR_FLOOR:
+			case AVOCADO_UNARY_OP_FLOOR:
 //				return avocado::backend::floor(x);
-			case AVOCADO_OP_SINGLE_TENSOR_LN:
+			case AVOCADO_UNARY_OP_LN:
 				return avocado::backend::log(x);
-			case AVOCADO_OP_SINGLE_TENSOR_NEG:
+			case AVOCADO_UNARY_OP_NEG:
 				return -x;
-			case AVOCADO_OP_SINGLE_TENSOR_RCP:
+			case AVOCADO_UNARY_OP_RCP:
 				return one<T>() / x;
-			case AVOCADO_OP_SINGLE_TENSOR_RSQRT:
+			case AVOCADO_UNARY_OP_RSQRT:
 				return one<T>() / avocado::backend::sqrt(x);
-			case AVOCADO_OP_SINGLE_TENSOR_SIN:
+			case AVOCADO_UNARY_OP_SIN:
 				return avocado::backend::sin(x);
-			case AVOCADO_OP_SINGLE_TENSOR_SQUARE:
+			case AVOCADO_UNARY_OP_SQUARE:
 				return avocado::backend::square(x);
-			case AVOCADO_OP_SINGLE_TENSOR_SQRT:
+			case AVOCADO_UNARY_OP_SQRT:
 				return avocado::backend::sqrt(x);
-			case AVOCADO_OP_SINGLE_TENSOR_TAN:
+			case AVOCADO_UNARY_OP_TAN:
 				return avocado::backend::tan(x);
-			case AVOCADO_OP_SINGLE_TENSOR_LOGICAL_NOT:
+			case AVOCADO_UNARY_OP_LOGICAL_NOT:
 				return LogicalNot<T>::value(x);
 		}
 		return zero<T>();
 	}
 	template<typename T, typename U>
-	void kernel_op_single_tensor(T *dst, const T *src, U alpha, U beta, avSize_t elements, avOpSingleTensorOp_t operation)
+	void kernel_op_single_tensor(T *dst, const T *src, U alpha, U beta, avSize_t elements, avUnaryOp_t operation)
 	noexcept
 	{
 		if (beta == zero<U>())
@@ -403,7 +403,7 @@ namespace
 		}
 	}
 	template<typename T, typename U>
-	void kernel_reduce_tensor(T *dst, const T *src, U alpha, U beta, BroadcastedDimensions dims, avReduceTensorOp_t operation) noexcept
+	void kernel_reduce_tensor(T *dst, const T *src, U alpha, U beta, BroadcastedDimensions dims, avReduceOp_t operation) noexcept
 	{
 		std::unique_ptr<T[]> workspace = std::make_unique<T[]>(dims.last);
 
@@ -412,21 +412,21 @@ namespace
 		{
 			switch (operation)
 			{
-				case AVOCADO_REDUCE_TENSOR_ADD:
-				case AVOCADO_REDUCE_TENSOR_AVG:
-				case AVOCADO_REDUCE_TENSOR_NORM1:
-				case AVOCADO_REDUCE_TENSOR_NORM2:
-				case AVOCADO_REDUCE_TENSOR_AMAX:
+				case AVOCADO_REDUCE_ADD:
+				case AVOCADO_REDUCE_AVG:
+				case AVOCADO_REDUCE_NORM1:
+				case AVOCADO_REDUCE_NORM2:
+				case AVOCADO_REDUCE_AMAX:
 					workspace[j] = zero<T>();
 					break;
-				case AVOCADO_REDUCE_TENSOR_MUL:
-				case AVOCADO_REDUCE_TENSOR_MUL_NO_ZEROS:
+				case AVOCADO_REDUCE_MUL:
+				case AVOCADO_REDUCE_MUL_NO_ZEROS:
 					workspace[j] = one<T>();
 					break;
-				case AVOCADO_REDUCE_TENSOR_MIN:
+				case AVOCADO_REDUCE_MIN:
 					workspace[j] = max_value<T>::get();
 					break;
-				case AVOCADO_REDUCE_TENSOR_MAX:
+				case AVOCADO_REDUCE_MAX:
 					workspace[j] = -max_value<T>::get();
 					break;
 			}
@@ -440,31 +440,31 @@ namespace
 				T value = src[i * dims.last + j];
 				switch (operation)
 				{
-					case AVOCADO_REDUCE_TENSOR_ADD:
+					case AVOCADO_REDUCE_ADD:
 						workspace[j] += value;
 						break;
-					case AVOCADO_REDUCE_TENSOR_MUL:
+					case AVOCADO_REDUCE_MUL:
 						workspace[j] *= value;
 						break;
-					case AVOCADO_REDUCE_TENSOR_MIN:
+					case AVOCADO_REDUCE_MIN:
 						workspace[j] = std::min(workspace[j], value);
 						break;
-					case AVOCADO_REDUCE_TENSOR_MAX:
+					case AVOCADO_REDUCE_MAX:
 						workspace[j] = std::max(workspace[j], value);
 						break;
-					case AVOCADO_REDUCE_TENSOR_AMAX:
+					case AVOCADO_REDUCE_AMAX:
 						workspace[j] = std::max(workspace[j], avocado::backend::abs(value));
 						break;
-					case AVOCADO_REDUCE_TENSOR_AVG:
+					case AVOCADO_REDUCE_AVG:
 						workspace[j] += value;
 						break;
-					case AVOCADO_REDUCE_TENSOR_NORM1:
+					case AVOCADO_REDUCE_NORM1:
 						workspace[j] += avocado::backend::abs(value);
 						break;
-					case AVOCADO_REDUCE_TENSOR_NORM2:
+					case AVOCADO_REDUCE_NORM2:
 						workspace[j] += square(value);
 						break;
-					case AVOCADO_REDUCE_TENSOR_MUL_NO_ZEROS:
+					case AVOCADO_REDUCE_MUL_NO_ZEROS:
 						if (value != zero<T>())
 							workspace[j] *= value;
 						break;
@@ -477,11 +477,11 @@ namespace
 		{
 			default:
 				break;
-			case AVOCADO_REDUCE_TENSOR_AVG:
+			case AVOCADO_REDUCE_AVG:
 				for (avSize_t j = 0; j < dims.last; j++)
 					workspace[j] = static_cast<U>(workspace[j]) / dims.first;
 				break;
-			case AVOCADO_REDUCE_TENSOR_NORM2:
+			case AVOCADO_REDUCE_NORM2:
 				for (avSize_t j = 0; j < dims.last; j++)
 					workspace[j] = avocado::backend::sqrt(static_cast<U>(workspace[j]));
 				break;
@@ -715,7 +715,7 @@ namespace avocado
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t refOpTensor(avContextDescriptor_t context, avOpTensorOp_t operation, const void *alpha1, const avTensorDescriptor_t aDesc,
+		avStatus_t refBinaryOp(avContextDescriptor_t context, avBinaryOp_t operation, const void *alpha1, const avTensorDescriptor_t aDesc,
 				const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
@@ -743,7 +743,7 @@ namespace avocado
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t refOpSingleTensor(avContextDescriptor_t context, avOpSingleTensorOp_t operation, const void *alpha,
+		avStatus_t refUnaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha,
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc,
 				avMemoryDescriptor_t cMem)
 		{
@@ -771,7 +771,7 @@ namespace avocado
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t refReduceTensor(avContextDescriptor_t context, avReduceTensorOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
+		avStatus_t refReduceTensor(avContextDescriptor_t context, avReduceOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
 				const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
 			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(aDesc), getTensor(cDesc));

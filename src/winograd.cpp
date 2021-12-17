@@ -253,55 +253,55 @@ namespace
 	void transform_input(int tileSize, const ConvolutionDescriptor &config, const TensorDescriptor &xDesc, const T *xMem, TensorDescriptor &mDesc,
 			T *mMem)
 	{
-		const int batch_size = xDesc.dimension(0);
-		const int height = xDesc.dimension(1);
-		const int width = xDesc.dimension(2);
-		const int filters = xDesc.dimension(3);
-
-		const int padding_h = config.padding[0];
-		const int padding_w = config.padding[1];
-		const int kernel_size = config.filter[1];
-		const int tiling_stride = tileSize + kernel_size - 1;
-
-		int tile_index = 0;
-		for (int b = 0; b < batch_size; b++)
-			for (int h = 0; h < height; h += tileSize)
-				for (int w = 0; w < width; w += tileSize)
-				{
-					for (int f = 0; f < filters; f++)
-					{
-						Tile<T> tile = extract_tile_from_tensor<T>(xDesc, xMem, tiling_stride, { b, h + padding_h, w + padding_w, f });
-						Tile<T> transformed = Tile<T>::transform(getInputTransform<T>(kernel_size, tileSize), tile);
-						insert_tile_to_matrix(transformed, mDesc, mMem, { tile_index, f });
-					}
-					tile_index++;
-				}
+//		const int batch_size = xDesc.dimension(0);
+//		const int height = xDesc.dimension(1);
+//		const int width = xDesc.dimension(2);
+//		const int filters = xDesc.dimension(3);
+//
+//		const int padding_h = config.padding[0];
+//		const int padding_w = config.padding[1];
+//		const int kernel_size = config.filter[1];
+//		const int tiling_stride = tileSize + kernel_size - 1;
+//
+//		int tile_index = 0;
+//		for (int b = 0; b < batch_size; b++)
+//			for (int h = 0; h < height; h += tileSize)
+//				for (int w = 0; w < width; w += tileSize)
+//				{
+//					for (int f = 0; f < filters; f++)
+//					{
+//						Tile<T> tile = extract_tile_from_tensor<T>(xDesc, xMem, tiling_stride, { b, h + padding_h, w + padding_w, f });
+//						Tile<T> transformed = Tile<T>::transform(getInputTransform<T>(kernel_size, tileSize), tile);
+//						insert_tile_to_matrix(transformed, mDesc, mMem, { tile_index, f });
+//					}
+//					tile_index++;
+//				}
 	}
 	template<typename T>
 	void transform_output(int tileSize, const ConvolutionDescriptor &config, const TensorDescriptor &mDesc, const T *mMem,
 			const TensorDescriptor &yDesc, T *yMem)
 	{
-		const int batch_size = yDesc.dimension(0);
-		const int height = yDesc.dimension(1);
-		const int width = yDesc.dimension(2);
-		const int filters = yDesc.dimension(3);
-
-		const int kernel_size = config.filter[0];
-		const int tiling_stride = tileSize + kernel_size - 1;
-
-		int tile_index = 0;
-		for (int b = 0; b < batch_size; b++)
-			for (int h = 0; h < height; h += tileSize)
-				for (int w = 0; w < width; w += tileSize)
-				{
-					for (int f = 0; f < filters; f++)
-					{
-						Tile<T> tile = extract_tile_from_matrix<T>(mDesc, mMem, tiling_stride, { tile_index, f });
-						Tile<T> transformed = Tile<T>::transform(getInputTransform<T>(kernel_size, tileSize), tile);
-						insert_tile_to_tensor(transformed, yDesc, yMem, { b, h, w, f });
-					}
-					tile_index++;
-				}
+//		const int batch_size = yDesc.dimension(0);
+//		const int height = yDesc.dimension(1);
+//		const int width = yDesc.dimension(2);
+//		const int filters = yDesc.dimension(3);
+//
+//		const int kernel_size = config.filter[0];
+//		const int tiling_stride = tileSize + kernel_size - 1;
+//
+//		int tile_index = 0;
+//		for (int b = 0; b < batch_size; b++)
+//			for (int h = 0; h < height; h += tileSize)
+//				for (int w = 0; w < width; w += tileSize)
+//				{
+//					for (int f = 0; f < filters; f++)
+//					{
+//						Tile<T> tile = extract_tile_from_matrix<T>(mDesc, mMem, tiling_stride, { tile_index, f });
+//						Tile<T> transformed = Tile<T>::transform(getInputTransform<T>(kernel_size, tileSize), tile);
+//						insert_tile_to_tensor(transformed, yDesc, yMem, { b, h, w, f });
+//					}
+//					tile_index++;
+//				}
 	}
 
 //	template<typename T>

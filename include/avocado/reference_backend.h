@@ -21,7 +21,7 @@ namespace avocado
 		/**
 		 * A few words about argument types. \n
 		 * Descriptor types are passed by value, const keyword is used as a hint that object associated with the descriptor will not change within the function.
-		 * All pointer types are assumed to be pointing to host memory.
+		 * All pointer and array types are assumed to be pointing to host memory.
 		 *
 		 * A few words about argument names. \n
 		 *
@@ -35,7 +35,7 @@ namespace avocado
 		 *
 		 * For other kinds of functions, letters 'a' and 'b' usually indicate inputs to the function, while letter 'c' indicates the output.
 		 * Typically they followed by 'Desc' for tensor descriptors, 'Mem' for memory descriptors.
-		 * Sometimes there are more than one letter in the tensor descriptor name, like 'xyDesc'. It means that both 'x' and 'y' arguments have the same descriptor.
+		 * Sometimes there may be more than one letter in the tensor descriptor name, like 'xyDesc'. It means that both 'x' and 'y' arguments have the same descriptor.
 		 *
 		 * In few functions output is named 'dst' while input is 'src'.
 		 *
@@ -43,12 +43,11 @@ namespace avocado
 		 * for alpha-like types the default value is 1.
 		 * for beta-like types the default value is 0.
 		 * The type for alpha and beta parameters must match the types of tensors with the exceptions for:
-		 *  - all integer types - alpha and beta type must be float32. Unless specified otherwise, the integer value will be casted to float32,
-		 *  scaling will be performed on float32, and then the value will be casted back to appropriate integer type.
+		 *  - all integer types - alpha and beta type must be float32. Unless specified otherwise, the integer tensor elements will be casted to float32,
+		 *  scaling will be performed in float32, and then the element will be casted back to appropriate integer type.
 		 *  - float16, bfloat16 - alpha and beta must be float32
 		 *
 		 * Context specifies the device on which the operation is performed.
-		 * The functions does not check the validity of passed descriptors!
 		 */
 
 		/**
@@ -68,7 +67,7 @@ namespace avocado
 		 * \retval AVOCADO_STATUS_BAD_PARAM The passed context is invalid or is a descriptor of the default context.
 		 * \retval AVOCADO_STATUS_FREE_FAILED Deallocation failed.
 		 */
-		DLL_PUBLIC avStatus_t refDestroyContextDescriptor(avContextDescriptor_t context);
+		DLL_PUBLIC avStatus_t refDestroyContextDescriptor(avContextDescriptor_t desc);
 
 		/**
 		 * \brief Blocks until all operations in a given context are finished.
@@ -156,7 +155,7 @@ namespace avocado
 		/**
 		 * \brief This method returns pointer associated with the memory descriptor.
 		 * Because host memory and CPU device memory are actually the same, there is no method to copy the memory from CPU device to host.
-		 * Instead, this method was provided to convert CPU memory descriptor into the host pointer.
+		 * Instead, this method is provided to convert CPU memory descriptor into the host pointer.
 		 * If anything goes wrong, a null pointer will be returned.
 		 */
 		DLL_PUBLIC void* refGetMemoryPointer(avMemoryDescriptor_t mem);
@@ -177,7 +176,7 @@ namespace avocado
 		DLL_PUBLIC avStatus_t refSetTensorDescriptor(avTensorDescriptor_t desc, avDataType_t dtype, int nbDims, const int dimensions[]);
 
 		/**
-		 * \brief Queries tensor descriptor.
+		 * \brief Queries parameters of tensor descriptor.
 		 */
 		DLL_PUBLIC avStatus_t refGetTensorDescriptor(avTensorDescriptor_t desc, avDataType_t *dtype, int *nbDims, int dimensions[]);
 
@@ -259,9 +258,9 @@ namespace avocado
 		 * \param[in] cDesc
 		 * \param[out] cMem
 		 */
-		DLL_PUBLIC avStatus_t refOpTensor(avContextDescriptor_t context, avOpTensorOp_t operation, const void *alpha1,
-				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc,
-				const avMemoryDescriptor_t bMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem);
+		DLL_PUBLIC avStatus_t refBinaryOp(avContextDescriptor_t context, avBinaryOp_t operation, const void *alpha1, const avTensorDescriptor_t aDesc,
+				const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
+				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
@@ -273,9 +272,8 @@ namespace avocado
 		 * \param[in] cDesc
 		 * \param[out] cMem
 		 */
-		DLL_PUBLIC avStatus_t refOpSingleTensor(avContextDescriptor_t context, avOpSingleTensorOp_t operation, const void *alpha,
-				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc,
-				avMemoryDescriptor_t cMem);
+		DLL_PUBLIC avStatus_t refUnaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
+				const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
@@ -287,7 +285,7 @@ namespace avocado
 		 * \param[in] cDesc
 		 * \param[out] cMem
 		 */
-		DLL_PUBLIC avStatus_t refReduceTensor(avContextDescriptor_t context, avReduceTensorOp_t operation, const void *alpha,
+		DLL_PUBLIC avStatus_t refReduceTensor(avContextDescriptor_t context, avReduceOp_t operation, const void *alpha,
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc,
 				avMemoryDescriptor_t cMem);
 
@@ -606,60 +604,121 @@ namespace avocado
 				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem);
 
 		/**
-		 * \brief Creates new tensor descriptor.
+		 * \brief Creates new convolution descriptor.
+		 *
+		 * \param[out] result
 		 */
 		DLL_PUBLIC avStatus_t refCreateConvolutionDescriptor(avConvolutionDescriptor_t *result);
 
 		/**
-		 * \brief Deletes tensor descriptor.
+		 * \brief Deletes convolution descriptor.
+		 *
+		 * \param[in] desc
 		 */
 		DLL_PUBLIC avStatus_t refDestroyConvolutionDescriptor(avConvolutionDescriptor_t desc);
 
 		/**
-		 * \brief Sets tensor descriptor.
+		 * \brief Sets convolution descriptor.
+		 *
+		 * \param[in] desc
+		 * \param[in] mode
+		 * \param[in] nbDims Dimensionality of the convolution. Its value must be 1, 2 or 3.
+		 * \param[in] filterSize Array with dimensions of the filter. This parameter is mandatory.
+		 * \param[in] padding Array with padding offsets. This parameter is optional (can be null), a value of 0 will be used for all dimensions.
+		 * \param[in] strides Array with strides. This parameter is optional (can be null), a value of 1 will be used for all dimensions.
+		 * \param[in] dilation Array with dilation factors. This parameter is optional (can be null), a value of 1 will be used for all dimensions.
+		 * \param[in] groups Number of groups in the convolution. Must be greaten than 0.
+		 * \param[in] paddingValue Pointer to at least 16 bytes of memory with the value of tensor padding. This parameter is optional (can be null), a value of 0 will be used then.
 		 */
-		DLL_PUBLIC avStatus_t refSetConvolutionDescriptor(avConvolutionDescriptor_t desc, avActivationType_t activation, int nbDims, const int filterSize[], const int strides[], const int padding[]);
+		DLL_PUBLIC avStatus_t refSetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionMode_t mode, int nbDims, const int padding[],
+				const int strides[], const int dilation[], int groups, const void *paddingValue);
 
 		/**
-		 * \brief Queries tensor descriptor.
+		 * \brief Queries parameters of convolution descriptor.
+		 *
+		 * \param[in] desc
+		 * \param[out] mode
+		 * \param[out] nbDims
+		 * \param[out] filterSize
+		 * \param[out] padding
+		 * \param[out] strides
+		 * \param[out] dilation
+		 * \param[out] groups
+		 * \param[out] paddingValue Pointer to at least 16 bytes of memory with the value of tensor padding. This parameter is optional (can be null), will be ignored then.
 		 */
-		DLL_PUBLIC avStatus_t refGetConvolutionDescriptor(avConvolutionDescriptor_t desc, avDataType_t *dtype, int *nbDims, int dimensions[]);
+		DLL_PUBLIC avStatus_t refGetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionMode_t *mode, int *nbDims, int padding[],
+				int strides[], int dilation[], int *groups, void *paddingValue);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
+		 * \param[in] config
+		 * \param[in] filterDesc
+		 * \param[in] srcDesc
+		 * \param[in] srcMem
+		 * \param[in] colDesc
+		 * \param[out] colMem
 		 */
-		DLL_PUBLIC avStatus_t refIm2Col(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t aDesc,
-				const avMemoryDescriptor_t aMem, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem);
+		DLL_PUBLIC avStatus_t refIm2Col(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t filterDesc,
+				const avTensorDescriptor_t srcDesc, const avMemoryDescriptor_t srcMem, const avTensorDescriptor_t colDesc,
+				avMemoryDescriptor_t colMem);
 
 		/**
+		 * y = activation(alpha1 * convolve(x, w) + alpha2 * z + b) + beta * y
 		 * \param[in] context Context in which the operation is performed.
-		 * output = activation(alpha1 * convolve(input, weights) + alpha2 * add + bias)
+		 * \param[in] config
+		 * \param[in] alpha1
+		 * \param[in] xDesc
+		 * \param[in] xMem
+		 * \param[in] wDesc
+		 * \param[in] wMem
+		 * \param[in] bDesc
+		 * \param[in] bMem
+		 * \param[in] activation
+		 * \param[in] alpha2
+		 * \param[in] zDesc
+		 * \param[in] zMem
+		 * \param[in] beta
+		 * \param[in] yDesc
+		 * \param[out] yMem
 		 */
 		DLL_PUBLIC avStatus_t refConvolutionBiasActivationForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
-				const void *alpha1, const void *beta, const avTensorDescriptor_t input, avTensorDescriptor_t output,
-				const avTensorDescriptor_t weights, const avTensorDescriptor_t bias, const avActivationType_t activation, const void *alpha2,
-				const avTensorDescriptor_t add);
+				const void *alpha1, const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc,
+				const avMemoryDescriptor_t wMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2,
+				const avTensorDescriptor_t zDesc, const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem, const avActivationType_t activation);
+
 		/**
+		 * y = alpha * convolve(x, w) + beta * y
 		 * \param[in] context Context in which the operation is performed.
-		 * \brief Simplified version of the above method.
-		 * output = alpha * convolve(input, weights) + beta * output
+		 * \param[in] config
+		 * \param[in] alpha
+		 * \param[in] xDesc
+		 * \param[in] xMem
+		 * \param[in] wDesc
+		 * \param[in] wMem
+		 * \param[in] beta
+		 * \param[in] yDesc
+		 * \param[out] yMem
 		 */
 		DLL_PUBLIC avStatus_t refConvolutionForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
-				const void *beta, const avTensorDescriptor_t input, avTensorDescriptor_t output, const avTensorDescriptor_t weights);
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
+				const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
-		 */
-		DLL_PUBLIC avStatus_t refConvolutionBackward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
-				const void *beta, avTensorDescriptor_t gradientPrev, avTensorDescriptor_t gradientNext, const avTensorDescriptor_t output,
-				const avTensorDescriptor_t weights, const avActivationType_t activation);
-
-		/**
-		 * \param[in] context Context in which the operation is performed.
+		 * \param[in] config
+		 * \param[in] alpha
+		 * \param[in] xDesc
+		 * \param[in] xMem
+		 * \param[in] dyDesc
+		 * \param[in] dyMem
+		 * \param[in] beta
+		 * \param[in] dwDesc
+		 * \param[out] dwMem
 		 */
 		DLL_PUBLIC avStatus_t refConvolutionUpdate(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
-				const void *beta, const avTensorDescriptor_t input, const avTensorDescriptor_t gradientNext, avTensorDescriptor_t weightUpdate,
-				avTensorDescriptor_t biasUpdate);
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc,
+				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dwDesc, avMemoryDescriptor_t dwMem);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
@@ -728,6 +787,71 @@ namespace avocado
 		DLL_PUBLIC avStatus_t refLossGradient(avContextDescriptor_t context, avLossType_t lossType, const void *alpha, const void *beta,
 				const avTensorDescriptor_t gradientDesc, avMemoryDescriptor_t gradientMem, const avTensorDescriptor_t outputDesc,
 				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, bool isFused);
+
+		/**
+		 * \brief Creates new optimizer descriptor.
+		 *
+		 * \param[out] result
+		 */
+		DLL_PUBLIC avStatus_t refCreateOptimizerDescriptor(avOptimizerDescriptor_t *result);
+
+		/**
+		 * \brief Deletes optimizer descriptor.
+		 *
+		 * \param[in] desc
+		 */
+		DLL_PUBLIC avStatus_t refDestroyOptimizerDescriptor(avOptimizerDescriptor_t desc);
+
+		/**
+		 * \brief Sets optimizer descriptor.
+		 *
+		 * \param[in] desc
+		 * \param[in] learningRate
+		 * \param[in] useMomentum
+		 * \param[in] useNesterov
+		 * \param[in] beta1
+		 */
+		DLL_PUBLIC avStatus_t refSetOptimizerSGD(avOptimizerDescriptor_t desc, double learningRate, bool useMomentum, bool useNesterov, double beta1);
+
+		/**
+		 * \brief Queries parameters of optimizer descriptor.
+		 *
+		 * \param[in] desc
+		 * \param[out] learningRate
+		 * \param[out] useMomentum
+		 * \param[out] useNesterov
+		 * \param[out] beta1
+		 */
+		DLL_PUBLIC avStatus_t gefGetOptimizerSGD(avOptimizerDescriptor_t desc, double *learningRate, bool *useMomentum, bool *useNesterov,
+				double *beta1);
+
+		/**
+		 * \brief Sets optimizer descriptor.
+		 *
+		 * \param[in] desc
+		 * \param[in] learningRate
+		 * \param[in] beta1
+		 * \param[in] beta2
+		 */
+		DLL_PUBLIC avStatus_t refSetOptimizerADAM(avOptimizerDescriptor_t desc, double learningRate, double beta1, double beta2);
+
+		/**
+		 * \brief Queries parameters of optimizer descriptor.
+		 *
+		 * \param[in] desc
+		 * \param[out] learningRate
+		 * \param[out] beta1
+		 * \param[out] beta2
+		 */
+		DLL_PUBLIC avStatus_t gefGetOptimizerADAM(avOptimizerDescriptor_t desc, double *learningRate, double *beta1, double *beta2);
+
+		/**
+		 * \brief Queries type of optimizer descriptor.
+		 *
+		 * \param[in] desc
+		 * \param[out] type
+		 */
+		DLL_PUBLIC avStatus_t gefGetOptimizerType(avOptimizerDescriptor_t desc, avOptimizerType_t *type);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
