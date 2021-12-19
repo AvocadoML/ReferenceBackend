@@ -55,7 +55,7 @@ namespace
 	}
 
 	avStatus_t sgd_helper(const OptimizerDescriptor &optimizer, const TensorDescriptor &weightDesc, avMemoryDescriptor_t weight,
-			const avMemoryDescriptor_t update, avMemoryDescriptor_t workspace1)
+			const avMemoryDescriptor_t update, avMemoryDescriptor_t workspace)
 	{
 		const avSize_t elements = weightDesc.volume();
 		bool use_momentum = optimizer.flags[0];
@@ -67,7 +67,7 @@ namespace
 			{
 				float beta = optimizer.coef[0];
 				float learning_rate = optimizer.learning_rate;
-				float *momentum = use_momentum ? nullptr : getPointer<float>(workspace1);
+				float *momentum = use_momentum ? nullptr : getPointer<float>(workspace);
 				kernel_learn_sgd(getPointer<float>(weight), getPointer<float>(update), momentum, elements, learning_rate, beta, use_momentum,
 						use_nesterov);
 				break;
@@ -76,7 +76,7 @@ namespace
 			{
 				double beta = optimizer.coef[0];
 				double learning_rate = optimizer.learning_rate;
-				double *momentum = use_momentum ? nullptr : getPointer<double>(workspace1);
+				double *momentum = use_momentum ? nullptr : getPointer<double>(workspace);
 				kernel_learn_sgd(getPointer<double>(weight), getPointer<double>(update), momentum, elements, learning_rate, beta, use_momentum,
 						use_nesterov);
 				break;
@@ -86,19 +86,22 @@ namespace
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
-	avStatus_t adam_helper(const OptimizerDescriptor &optimizer, const TensorDescriptor &weightDesc, avMemoryDescriptor_t weight,
-			const avMemoryDescriptor_t update, avMemoryDescriptor_t workspace1, avMemoryDescriptor_t workspace2)
+	avStatus_t adam_helper(const OptimizerDescriptor &optimizer, const TensorDescriptor &wDesc, avMemoryDescriptor_t weight,
+			const avMemoryDescriptor_t update, avMemoryDescriptor_t workspace)
 	{
-		const avSize_t elements = weightDesc.volume();
-		switch (weightDesc.dtype())
+		const avSize_t elements = wDesc.volume();
+
+		if (getMemory(workspace).size() < 2 * elements * dataTypeSize(wDesc.dtype()))
+			return AVOCADO_STATUS_INTERNAL_ERROR;
+		switch (wDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
 				float beta1 = optimizer.coef[0];
 				float beta2 = optimizer.coef[1];
 				float learning_rate = optimizer.learning_rate;
-				kernel_learn_adam(getPointer<float>(weight), getPointer<float>(update), getPointer<float>(workspace1), getPointer<float>(workspace2),
-						elements, learning_rate, beta1, beta2);
+				kernel_learn_adam(getPointer<float>(weight), getPointer<float>(update), getPointer<float>(workspace),
+						getPointer<float>(workspace) + elements, elements, learning_rate, beta1, beta2);
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
@@ -106,8 +109,8 @@ namespace
 				double beta1 = optimizer.coef[0];
 				double beta2 = optimizer.coef[1];
 				double learning_rate = optimizer.learning_rate;
-				kernel_learn_adam(getPointer<double>(weight), getPointer<double>(update), getPointer<double>(workspace1),
-						getPointer<double>(workspace2), elements, learning_rate, beta1, beta2);
+				kernel_learn_adam(getPointer<double>(weight), getPointer<double>(update), getPointer<double>(workspace),
+						getPointer<double>(workspace) + elements, elements, learning_rate, beta1, beta2);
 				break;
 			}
 			default:
@@ -121,16 +124,15 @@ namespace avocado
 {
 	namespace backend
 	{
-		avStatus_t refOptimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t optimizer, const avTensorDescriptor_t weightDesc,
-				avMemoryDescriptor_t weightMem, const avTensorDescriptor_t updateDesc, const avTensorDescriptor_t updateMem,
-				avMemoryDescriptor_t workspace1, avMemoryDescriptor_t workspace2)
+		avStatus_t refOptimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const avTensorDescriptor_t wDesc,
+				avMemoryDescriptor_t wMem, const avTensorDescriptor_t dwDesc, const avTensorDescriptor_t dwMem, avMemoryDescriptor_t workspace)
 		{
-			switch (getOptimizer(optimizer).type)
+			switch (getOptimizer(config).type)
 			{
 				case AVOCADO_OPTIMIZER_SGD:
-					return sgd_helper(getOptimizer(optimizer), getTensor(weightDesc), weightMem, updateMem, workspace1);
+					return sgd_helper(getOptimizer(config), getTensor(wDesc), wMem, dwMem, workspace);
 				case AVOCADO_OPTIMIZER_ADAM:
-					return adam_helper(getOptimizer(optimizer), getTensor(weightDesc), weightMem, updateMem, workspace1, workspace2);
+					return adam_helper(getOptimizer(config), getTensor(wDesc), wMem, dwMem, workspace);
 				default:
 					return AVOCADO_STATUS_BAD_PARAM;
 			}

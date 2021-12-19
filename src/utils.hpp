@@ -17,6 +17,44 @@ namespace avocado
 {
 	namespace backend
 	{
+		template<typename T, typename U>
+		T binary_cast(U x) noexcept
+		{
+			return x;
+		}
+		template<>
+		inline uint32_t binary_cast<uint32_t, float>(float x) noexcept
+		{
+			static_assert(sizeof(float) == sizeof(uint32_t));
+			uint32_t result;
+			std::memcpy(&result, &x, sizeof(float));
+			return result;
+		}
+		template<>
+		inline float binary_cast<float, uint32_t>(uint32_t x) noexcept
+		{
+			static_assert(sizeof(float) == sizeof(uint32_t));
+			float result;
+			std::memcpy(&result, &x, sizeof(uint32_t));
+			return result;
+		}
+		template<>
+		inline uint64_t binary_cast<uint64_t, double>(double x) noexcept
+		{
+			static_assert(sizeof(double) == sizeof(uint64_t));
+			uint64_t result;
+			std::memcpy(&result, &x, sizeof(double));
+			return result;
+		}
+		template<>
+		inline double binary_cast<double, uint64_t>(uint64_t x) noexcept
+		{
+			static_assert(sizeof(double) == sizeof(uint64_t));
+			double result;
+			std::memcpy(&result, &x, sizeof(uint64_t));
+			return result;
+		}
+
 		template<typename T>
 		T zero() noexcept
 		{
@@ -54,6 +92,23 @@ namespace avocado
 				static bfloat16 get() noexcept
 				{
 					return bfloat16(std::numeric_limits<float>::max());
+				}
+		};
+
+		template<typename dstT, typename srcT>
+		struct Store
+		{
+				static dstT store(srcT x) noexcept
+				{
+					return static_cast<dstT>(x);
+				}
+		};
+		template<>
+		struct Store<int8_t, float>
+		{
+				static int8_t store(float x) noexcept
+				{
+					return static_cast<int8_t>(std::max(-128.0f, std::min(127.0f, x)));
 				}
 		};
 
@@ -108,14 +163,7 @@ namespace avocado
 		{
 				static float value(float lhs, float rhs) noexcept
 				{
-					static_assert(sizeof(float) == sizeof(uint32_t));
-					uint32_t tmp1, tmp2;
-					std::memcpy(&tmp1, &lhs, sizeof(float));
-					std::memcpy(&tmp2, &rhs, sizeof(float));
-					tmp1 = tmp1 & tmp2;
-					float result;
-					std::memcpy(&result, &tmp1, sizeof(float));
-					return result;
+					return binary_cast<float>(binary_cast<uint32_t>(lhs) & binary_cast<uint32_t>(rhs));
 				}
 		};
 		template<>
@@ -123,14 +171,7 @@ namespace avocado
 		{
 				static double value(double lhs, double rhs) noexcept
 				{
-					static_assert(sizeof(double) == sizeof(uint64_t));
-					uint64_t tmp1, tmp2;
-					std::memcpy(&tmp1, &lhs, sizeof(double));
-					std::memcpy(&tmp2, &rhs, sizeof(double));
-					tmp1 = tmp1 & tmp2;
-					double result;
-					std::memcpy(&result, &tmp1, sizeof(double));
-					return result;
+					return binary_cast<float>(binary_cast<uint64_t>(lhs) & binary_cast<uint64_t>(rhs));
 				}
 		};
 
@@ -148,14 +189,7 @@ namespace avocado
 		{
 				static float value(float lhs, float rhs) noexcept
 				{
-					static_assert(sizeof(float) == sizeof(uint32_t));
-					uint32_t tmp1, tmp2;
-					std::memcpy(&tmp1, &lhs, sizeof(float));
-					std::memcpy(&tmp2, &rhs, sizeof(float));
-					tmp1 = tmp1 | tmp2;
-					float result;
-					std::memcpy(&result, &tmp1, sizeof(float));
-					return result;
+					return binary_cast<float>(binary_cast<uint32_t>(lhs) | binary_cast<uint32_t>(rhs));
 				}
 		};
 		template<>
@@ -163,14 +197,33 @@ namespace avocado
 		{
 				static double value(double lhs, double rhs) noexcept
 				{
-					static_assert(sizeof(double) == sizeof(uint64_t));
-					uint64_t tmp1, tmp2;
-					std::memcpy(&tmp1, &lhs, sizeof(double));
-					std::memcpy(&tmp2, &rhs, sizeof(double));
-					tmp1 = tmp1 | tmp2;
-					double result;
-					std::memcpy(&result, &tmp1, sizeof(double));
-					return result;
+					return binary_cast<float>(binary_cast<uint64_t>(lhs) | binary_cast<uint64_t>(rhs));
+				}
+		};
+
+		/* Logical Xor */
+		template<typename T>
+		struct LogicalXor
+		{
+				static T value(T lhs, T rhs) noexcept
+				{
+					return lhs ^ rhs;
+				}
+		};
+		template<>
+		struct LogicalXor<float>
+		{
+				static float value(float lhs, float rhs) noexcept
+				{
+					return binary_cast<float>(binary_cast<uint32_t>(lhs) ^ binary_cast<uint32_t>(rhs));
+				}
+		};
+		template<>
+		struct LogicalXor<double>
+		{
+				static double value(double lhs, double rhs) noexcept
+				{
+					return binary_cast<float>(binary_cast<uint64_t>(lhs) ^ binary_cast<uint64_t>(rhs));
 				}
 		};
 
@@ -188,13 +241,7 @@ namespace avocado
 		{
 				static float value(float x) noexcept
 				{
-					static_assert(sizeof(float) == sizeof(uint32_t));
-					uint32_t tmp;
-					std::memcpy(&tmp, &x, sizeof(float));
-					tmp = ~tmp;
-					float result;
-					std::memcpy(&result, &tmp, sizeof(float));
-					return result;
+					return binary_cast<float>(~binary_cast<uint32_t>(x));
 				}
 		};
 		template<>
@@ -202,13 +249,7 @@ namespace avocado
 		{
 				static double value(double x) noexcept
 				{
-					static_assert(sizeof(double) == sizeof(uint64_t));
-					uint64_t tmp;
-					std::memcpy(&tmp, &x, sizeof(double));
-					tmp = ~tmp;
-					double result;
-					std::memcpy(&result, &tmp, sizeof(double));
-					return result;
+					return binary_cast<double>(~binary_cast<uint64_t>(x));
 				}
 		};
 
@@ -399,6 +440,42 @@ namespace avocado
 		inline bfloat16 sqrt(bfloat16 x) noexcept
 		{
 			return bfloat16(sqrtf(static_cast<float>(x)));
+		}
+
+		/* arithmetic functions */
+		inline float ceil(float x) noexcept
+		{
+			return ceilf(x);
+		}
+		inline double ceil(double x) noexcept
+		{
+			return ceil(x);
+		}
+		inline float16 ceil(float16 x) noexcept
+		{
+			return float16(ceilf(static_cast<float>(x)));
+		}
+		inline bfloat16 ceil(bfloat16 x) noexcept
+		{
+			return bfloat16(ceilf(static_cast<float>(x)));
+		}
+
+		/* arithmetic functions */
+		inline float floor(float x) noexcept
+		{
+			return floorf(x);
+		}
+		inline double floor(double x) noexcept
+		{
+			return floor(x);
+		}
+		inline float16 floor(float16 x) noexcept
+		{
+			return float16(floorf(static_cast<float>(x)));
+		}
+		inline bfloat16 floor(bfloat16 x) noexcept
+		{
+			return bfloat16(floorf(static_cast<float>(x)));
 		}
 
 		template<typename T>

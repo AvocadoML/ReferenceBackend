@@ -9,5 +9,4 @@ target_sources(ReferenceBackend PRIVATE	activations.cpp
 										metrics.cpp
 										optimizers.cpp
 										pooling.cpp
-										regularizers.cpp
-										winograd.cpp)
+										regularizers.cpp)

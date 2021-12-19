@@ -150,16 +150,14 @@ namespace
 									if (x >= 0 and x < xDesc.dimension(1) and y >= 0 and y < xDesc.dimension(2))
 									{
 										for (int in = input_filters_group[0]; in < input_filters_group[1]; in++) // input filters
-											tmp = tmp
-													+ static_cast<ComputeType>(wMem[wDesc.getIndex( { out, i, j, in })])
-															* static_cast<ComputeType>(xMem[xDesc.getIndex( { b, x, y, in })]);
+											tmp += static_cast<ComputeType>(wMem[wDesc.getIndex( { out, i, j, in })])
+													* static_cast<ComputeType>(xMem[xDesc.getIndex( { b, x, y, in })]);
 									}
 									else
 									{
 										for (int in = input_filters_group[0]; in < input_filters_group[1]; in++) // input filters
-											tmp = tmp
-													+ static_cast<ComputeType>(wMem[wDesc.getIndex( { out, i, j, in })])
-															* static_cast<ComputeType>(padding_value);
+											tmp += static_cast<ComputeType>(wMem[wDesc.getIndex( { out, i, j, in })])
+													* static_cast<ComputeType>(padding_value);
 									}
 								}
 							ScalingType tmp2 = alpha * static_cast<ScalingType>(tmp) + beta * static_cast<ScalingType>(yMem[yDesc.getIndex( { b,
@@ -169,7 +167,7 @@ namespace
 							if (zMem != nullptr)
 								tmp2 += alpha2 * static_cast<ScalingType>(zMem[yDesc.getIndex( { b, out_h, out_w, out })]);
 							tmp2 = activation_forward(activation, tmp2);
-							yMem[yDesc.getIndex( { b, out_h, out_w, out })] = static_cast<DataType>(tmp2);
+							yMem[yDesc.getIndex( { b, out_h, out_w, out })] = Store<DataType, ScalingType>::store(tmp2);
 						}
 			}
 	}
@@ -281,11 +279,26 @@ namespace avocado
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
+
+		avStatus_t refGetConvolutionWorkspaceSize(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
+				const avTensorDescriptor_t xDesc, const avTensorDescriptor_t wDesc, const avTensorDescriptor_t bDesc, int *result)
+		{
+			if (result == nullptr)
+				return AVOCADO_STATUS_BAD_PARAM;
+			result[0] = 0;
+			return AVOCADO_STATUS_SUCCESS;
+		}
+		avStatus_t refPrecomputeConvolutionWorkspace(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
+				const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
+				avMemoryDescriptor_t workspace)
+		{
+			return AVOCADO_STATUS_SUCCESS;
+		}
 		avStatus_t refConvolutionBiasActivationForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
 				const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2, const avTensorDescriptor_t zDesc,
 				const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem,
-				const avActivationType_t activation)
+				const avActivationType_t activation, avMemoryDescriptor_t workspace)
 		{
 			switch (getTensor(xDesc).dtype())
 			{

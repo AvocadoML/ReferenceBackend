@@ -330,6 +330,8 @@ namespace
 				return LogicalAnd<T>::value(lhs, rhs);
 			case AVOCADO_BINARY_OP_LOGICAL_OR:
 				return LogicalOr<T>::value(lhs, rhs);
+			case AVOCADO_BINARY_OP_LOGICAL_XOR:
+				return LogicalXor<T>::value(lhs, rhs);
 		}
 		return zero<T>();
 	}
@@ -360,13 +362,13 @@ namespace
 			case AVOCADO_UNARY_OP_ABS:
 				return avocado::backend::abs(x);
 			case AVOCADO_UNARY_OP_CEIL:
-//				return avocado::backend::ceil(x);
+				return avocado::backend::ceil(x);
 			case AVOCADO_UNARY_OP_COS:
 				return avocado::backend::cos(x);
 			case AVOCADO_UNARY_OP_EXP:
 				return avocado::backend::exp(x);
 			case AVOCADO_UNARY_OP_FLOOR:
-//				return avocado::backend::floor(x);
+				return avocado::backend::floor(x);
 			case AVOCADO_UNARY_OP_LN:
 				return avocado::backend::log(x);
 			case AVOCADO_UNARY_OP_NEG:
@@ -503,7 +505,7 @@ namespace
 			for (avSize_t j = 0; j < dims.last; j++)
 			{
 				U tmp = alpha2 * static_cast<U>(src[j]) + beta2 * static_cast<U>(dst[i * dims.last + j]);
-				dst[i * dims.last + j] = alpha1 * tmp + beta1 * static_cast<U>(dst[i * dims.last + j]);
+				dst[i * dims.last + j] = Store<T, U>::store(alpha1 * tmp + beta1 * static_cast<U>(dst[i * dims.last + j]));
 			}
 	}
 }
@@ -743,9 +745,8 @@ namespace avocado
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t refUnaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha,
-				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc,
-				avMemoryDescriptor_t cMem)
+		avStatus_t refUnaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
+				const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
 			const avSize_t elements = getTensor(aDesc).volume();
 			switch (getTensor(cDesc).dtype())

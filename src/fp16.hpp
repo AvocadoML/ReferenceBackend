@@ -65,6 +65,8 @@ namespace avocado
 				friend float16& operator-=(float16 &lhs, const float16 &rhs) noexcept;
 				friend float16& operator*=(float16 &lhs, const float16 &rhs) noexcept;
 				friend float16& operator/=(float16 &lhs, const float16 &rhs) noexcept;
+
+				friend float& operator+=(float &lhs, const float16 &rhs) noexcept;
 		};
 
 		class bfloat16
@@ -120,6 +122,8 @@ namespace avocado
 				friend bfloat16& operator-=(bfloat16 &lhs, const bfloat16 &rhs) noexcept;
 				friend bfloat16& operator*=(bfloat16 &lhs, const bfloat16 &rhs) noexcept;
 				friend bfloat16& operator/=(bfloat16 &lhs, const bfloat16 &rhs) noexcept;
+
+				friend float& operator+=(float &lhs, const bfloat16 &rhs) noexcept;
 		};
 
 	} /* namespace backend */

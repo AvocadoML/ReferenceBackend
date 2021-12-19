@@ -352,6 +352,12 @@ namespace avocado
 			return lhs;
 		}
 
+		float& operator+=(float &lhs, const float16 &rhs) noexcept
+		{
+			lhs += half_to_float(rhs.m_data);
+			return lhs;
+		}
+
 		/* bfloat16 implementation */
 		bfloat16::bfloat16(unsigned short raw_binary_value) noexcept :
 				m_data(raw_binary_value)
@@ -520,6 +526,12 @@ namespace avocado
 		bfloat16& operator/=(bfloat16 &lhs, const bfloat16 &rhs) noexcept
 		{
 			lhs = bfloat16(bfloat16_to_float(lhs.m_data) / bfloat16_to_float(rhs.m_data));
+			return lhs;
+		}
+
+		float& operator+=(float &lhs, const bfloat16 &rhs) noexcept
+		{
+			lhs += bfloat16_to_float(rhs.m_data);
 			return lhs;
 		}
 
