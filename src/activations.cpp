@@ -5,13 +5,9 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <avocado/backend/backend_descriptors.hpp>
-
-#include "activations.hpp"
-
 #include <avocado/reference_backend.h>
-
-#include "descriptors.hpp"
+#include <avocado/backend/backend_descriptors.hpp>
+#include "activations.hpp"
 
 #include <memory>
 

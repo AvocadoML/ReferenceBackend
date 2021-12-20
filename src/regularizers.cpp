@@ -9,7 +9,6 @@
 #include <avocado/backend/backend_descriptors.hpp>
 
 #include "utils.hpp"
-#include "descriptors.hpp"
 
 namespace
 {

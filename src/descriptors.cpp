@@ -6,101 +6,23 @@
  */
 
 #include <avocado/reference_backend.h>
-#include "descriptors.hpp"
-
-namespace
-{
-	using namespace avocado::backend;
-
-	template<class T>
-	DescriptorPool<T>& getPool()
-	{
-		thread_local DescriptorPool<T> result;
-		return result;
-	}
-	template<>
-	DescriptorPool<ContextDescriptor>& getPool()
-	{
-		thread_local DescriptorPool<ContextDescriptor> result = []()
-		{
-			DescriptorPool<ContextDescriptor> tmp;
-			tmp.create(); // reserve descriptor 0 for default context
-			return tmp;
-		}();
-		return result;
-	}
-	template<typename T, typename ... Args>
-	avStatus_t create(int *result, Args &&... args)
-	{
-		if (result == nullptr)
-			return AVOCADO_STATUS_BAD_PARAM;
-		try
-		{
-			result[0] = getPool<T>().create(std::forward<Args>(args)...);
-		} catch (std::exception &e)
-		{
-			return AVOCADO_STATUS_INTERNAL_ERROR;
-		}
-		return AVOCADO_STATUS_SUCCESS;
-	}
-	template<typename T>
-	avStatus_t destroy(int desc)
-	{
-		try
-		{
-			getPool<T>().destroy(desc);
-		} catch (std::exception &e)
-		{
-			return AVOCADO_STATUS_FREE_FAILED;
-		}
-		return AVOCADO_STATUS_SUCCESS;
-	}
-}
+#include <avocado/backend/backend_descriptors.hpp>
 
 namespace avocado
 {
 	namespace backend
 	{
-		MemoryDescriptor& getMemory(avMemoryDescriptor_t desc)
-		{
-			return getPool<MemoryDescriptor>().get(desc);
-		}
-		ContextDescriptor& getContext(avContextDescriptor_t desc)
-		{
-			return getPool<ContextDescriptor>().get(desc);
-		}
-		TensorDescriptor& getTensor(avTensorDescriptor_t desc)
-		{
-			return getPool<TensorDescriptor>().get(desc);
-		}
-		ConvolutionDescriptor& getConvolution(avConvolutionDescriptor_t desc)
-		{
-			return getPool<ConvolutionDescriptor>().get(desc);
-		}
-		PoolingDescriptor& getPooling(avPoolingDescriptor_t desc)
-		{
-			return getPool<PoolingDescriptor>().get(desc);
-		}
-		OptimizerDescriptor& getOptimizer(avOptimizerDescriptor_t desc)
-		{
-			return getPool<OptimizerDescriptor>().get(desc);
-		}
-		DropoutDescriptor& getDropout(avDropoutDescriptor_t desc)
-		{
-			return getPool<DropoutDescriptor>().get(desc);
-		}
-
 		avStatus_t refCreateMemoryDescriptor(avMemoryDescriptor_t *result, avSize_t sizeInBytes)
 		{
-			return create<MemoryDescriptor>(result, sizeInBytes);
+			return internal::create<MemoryDescriptor>(result, sizeInBytes);
 		}
 		avStatus_t refCreateMemoryView(avMemoryDescriptor_t *result, const avMemoryDescriptor_t desc, avSize_t sizeInBytes, avSize_t offsetInBytes)
 		{
-			return create<MemoryDescriptor>(result, getMemory(desc), sizeInBytes, offsetInBytes);
+			return internal::create<MemoryDescriptor>(result, getMemory(desc), sizeInBytes, offsetInBytes);
 		}
 		avStatus_t refDestroyMemoryDescriptor(avMemoryDescriptor_t desc)
 		{
-			return destroy<MemoryDescriptor>(desc);
+			return internal::destroy<MemoryDescriptor>(desc);
 		}
 		avStatus_t refSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstSize, const void *pattern, avSize_t patternSize)
 		{
@@ -130,11 +52,11 @@ namespace avocado
 
 		avStatus_t refCreateContextDescriptor(avContextDescriptor_t *result)
 		{
-			return create<ContextDescriptor>(result);
+			return internal::create<ContextDescriptor>(result);
 		}
 		avStatus_t refDestroyContextDescriptor(avContextDescriptor_t desc)
 		{
-			return destroy<ContextDescriptor>(desc);
+			return internal::destroy<ContextDescriptor>(desc);
 		}
 		avStatus_t refSynchronizeWithContext(avContextDescriptor_t context)
 		{
@@ -150,11 +72,11 @@ namespace avocado
 
 		avStatus_t refCreateTensorDescriptor(avTensorDescriptor_t *result)
 		{
-			return create<TensorDescriptor>(result);
+			return internal::create<TensorDescriptor>(result);
 		}
 		avStatus_t refDestroyTensorDescriptor(avTensorDescriptor_t desc)
 		{
-			return destroy<TensorDescriptor>(desc);
+			return internal::destroy<TensorDescriptor>(desc);
 		}
 		avStatus_t refSetTensorDescriptor(avTensorDescriptor_t desc, avDataType_t dtype, int nbDims, const int dimensions[])
 		{
@@ -183,11 +105,11 @@ namespace avocado
 
 		avStatus_t refCreateConvolutionDescriptor(avConvolutionDescriptor_t *result)
 		{
-			return create<ConvolutionDescriptor>(result);
+			return internal::create<ConvolutionDescriptor>(result);
 		}
 		avStatus_t refDestroyConvolutionDescriptor(avConvolutionDescriptor_t desc)
 		{
-			return destroy<ConvolutionDescriptor>(desc);
+			return internal::destroy<ConvolutionDescriptor>(desc);
 		}
 		avStatus_t refSetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionMode_t mode, int nbDims, const int padding[],
 				const int strides[], const int dilation[], int groups, const void *paddingValue)
@@ -216,11 +138,11 @@ namespace avocado
 
 		avStatus_t refCreateOptimizerDescriptor(avOptimizerDescriptor_t *result)
 		{
-			return create<OptimizerDescriptor>(result);
+			return internal::create<OptimizerDescriptor>(result);
 		}
 		avStatus_t refDestroyOptimizerDescriptor(avOptimizerDescriptor_t desc)
 		{
-			return destroy<OptimizerDescriptor>(desc);
+			return internal::destroy<OptimizerDescriptor>(desc);
 		}
 		avStatus_t refSetOptimizerSGD(avOptimizerDescriptor_t desc, double learningRate, bool useMomentum, bool useNesterov, double beta1)
 		{

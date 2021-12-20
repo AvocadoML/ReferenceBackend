@@ -10,7 +10,6 @@
 #include "fp16.hpp"
 #include "utils.hpp"
 #include "activations.hpp"
-#include "descriptors.hpp"
 
 #include <memory>
 

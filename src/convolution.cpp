@@ -8,7 +8,6 @@
 #include <avocado/reference_backend.h>
 #include <avocado/backend/backend_descriptors.hpp>
 #include "utils.hpp"
-#include "descriptors.hpp"
 #include "activations.hpp"
 
 namespace

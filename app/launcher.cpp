@@ -7,7 +7,6 @@
 
 #include <avocado/reference_backend.h>
 #include <avocado/backend/backend_descriptors.hpp>
-#include "../src/descriptors.hpp"
 
 #include <initializer_list>
 #include <stddef.h>

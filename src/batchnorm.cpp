@@ -10,7 +10,6 @@
 
 #include "activations.hpp"
 #include "utils.hpp"
-#include "descriptors.hpp"
 
 #include <memory>
 #include <cassert>
