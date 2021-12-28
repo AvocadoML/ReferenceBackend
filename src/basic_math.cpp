@@ -291,7 +291,7 @@ namespace
 	}
 
 	template<typename T>
-	T op_tensor(avBinaryOp_t operation, T lhs, T rhs) noexcept
+	T binary_op(avBinaryOp_t operation, T lhs, T rhs) noexcept
 	{
 		switch (operation)
 		{
@@ -335,7 +335,7 @@ namespace
 		return zero<T>();
 	}
 	template<typename T, typename U>
-	void kernel_op_tensor(T *dst, const T *src1, const T *src2, U alpha1, U alpha2, U beta, BroadcastedDimensions dims, avBinaryOp_t operation)
+	void kernel_binary_op(T *dst, const T *src1, const T *src2, U alpha1, U alpha2, U beta, BroadcastedDimensions dims, avBinaryOp_t operation)
 	noexcept
 	{
 		if (beta == zero<U>())
@@ -347,14 +347,40 @@ namespace
 			{
 				T value1 = static_cast<T>(alpha1 * static_cast<U>(src1[i * dims.last + j]));
 				T value2 = static_cast<T>(alpha2 * static_cast<U>(src2[i * dims.last + j]));
-				T result = op_tensor(operation, value1, value2);
+				T result = binary_op(operation, value1, value2);
 				dst[i * dims.last + j] = static_cast<U>(result) + beta * static_cast<U>(dst[i * dims.last + j]);
 			}
 		}
 	}
+	template<typename T>
+	void kernel_binary_logical_op(T *dst, const T *src1, const T *src2, BroadcastedDimensions dims, avBinaryOp_t operation)
+	noexcept
+	{
+		clear(dst, volume(dims));
+		for (avSize_t i = 0; i < dims.first; i++)
+			for (avSize_t j = 0; j < dims.last; j++)
+			{
+				T lhs = src1[i * dims.last + j];
+				T rhs = src2[i * dims.last + j];
+				switch (operation)
+				{
+					case AVOCADO_BINARY_OP_LOGICAL_AND:
+						dst[i * dims.last + j] = lhs & rhs;
+						break;
+					case AVOCADO_BINARY_OP_LOGICAL_OR:
+						dst[i * dims.last + j] = lhs | rhs;
+						break;
+					case AVOCADO_BINARY_OP_LOGICAL_XOR:
+						dst[i * dims.last + j] = lhs ^ rhs;
+						break;
+					default:
+						break;
+				}
+			}
+	}
 
 	template<typename T>
-	T single_op_tensor(avUnaryOp_t operation, T x) noexcept
+	T unary_op(avUnaryOp_t operation, T x) noexcept
 	{
 		switch (operation)
 		{
@@ -390,7 +416,7 @@ namespace
 		return zero<T>();
 	}
 	template<typename T, typename U>
-	void kernel_op_single_tensor(T *dst, const T *src, U alpha, U beta, avSize_t elements, avUnaryOp_t operation)
+	void kernel_unary_op(T *dst, const T *src, U alpha, U beta, avSize_t elements, avUnaryOp_t operation)
 	noexcept
 	{
 		if (beta == zero<U>())
@@ -399,10 +425,19 @@ namespace
 		for (avSize_t i = 0; i < elements; i++)
 		{
 			T value = static_cast<T>(alpha * static_cast<U>(src[i]));
-			T result = single_op_tensor(operation, value);
+			T result = unary_op(operation, value);
 			dst[i] = static_cast<U>(result) + beta * static_cast<U>(dst[i]);
 		}
 	}
+	template<typename T>
+	void kernel_unary_logical_op(T *dst, const T *src, avSize_t elements, avUnaryOp_t operation)
+	noexcept
+	{
+		clear(dst, elements);
+		for (avSize_t i = 0; i < elements; i++)
+			dst[i] = ~(src[i]);
+	}
+
 	template<typename T, typename U>
 	void kernel_reduce_tensor(T *dst, const T *src, U alpha, U beta, BroadcastedDimensions dims, avReduceOp_t operation) noexcept
 	{
@@ -494,17 +529,20 @@ namespace
 		for (avSize_t j = 0; j < dims.last; j++)
 			dst[j] = alpha * static_cast<U>(workspace[j]) + beta * static_cast<U>(dst[j]);
 	}
-	template<typename T, typename U>
-	void kernel_add_tensors(T *dst, const T *src, U alpha1, U alpha2, U beta1, U beta2, BroadcastedDimensions dims, avActivationType_t type) noexcept
+	template<typename T, typename U, typename V>
+	void kernel_add_tensors(T *dst, U alpha3, U alpha1, const V *src1, U alpha2, const U *src2, U beta, BroadcastedDimensions dims,
+			avActivationType_t type) noexcept
 	{
-		if (beta1 == zero<U>() and beta2 == zero<U>())
+		if (beta == zero<U>())
 			clear(dst, volume(dims));
 
 		for (avSize_t i = 0; i < dims.first; i++)
 			for (avSize_t j = 0; j < dims.last; j++)
 			{
-				U tmp = alpha2 * static_cast<U>(src[j]) + beta2 * static_cast<U>(dst[i * dims.last + j]);
-				dst[i * dims.last + j] = Store<T, U>::store(alpha1 * tmp + beta1 * static_cast<U>(dst[i * dims.last + j]));
+				U lhs = alpha1 * static_cast<U>(src1[i * dims.last + j]);
+				U rhs = alpha2 * static_cast<U>(src2[j]);
+				U tmp = activation_forward(type, lhs + rhs);
+				dst[i * dims.last + j] = Store<T, U>::store(alpha3 * tmp + beta * static_cast<U>(dst[i * dims.last + j]));
 			}
 	}
 }
@@ -721,53 +759,95 @@ namespace avocado
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
 			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(aDesc), getTensor(bDesc));
-			switch (getTensor(cDesc).dtype())
+			if (is_logical(operation))
 			{
-				case AVOCADO_DTYPE_FLOAT16:
-					kernel_op_tensor(getPointer<float16>(cMem), getPointer<float16>(aMem), getPointer<float16>(bMem), getAlphaValue(alpha1),
-							getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
-					break;
-				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_op_tensor(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getPointer<bfloat16>(bMem), getAlphaValue(alpha1),
-							getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
-					break;
-				case AVOCADO_DTYPE_FLOAT32:
-					kernel_op_tensor(getPointer<float>(cMem), getPointer<float>(aMem), getPointer<float>(bMem), getAlphaValue(alpha1),
-							getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
-					break;
-				case AVOCADO_DTYPE_FLOAT64:
-					kernel_op_tensor(getPointer<double>(cMem), getPointer<double>(aMem), getPointer<double>(bMem), getAlphaValue<double>(alpha1),
-							getAlphaValue<double>(alpha2), getBetaValue<double>(beta), dimensions, operation);
-					break;
-				default:
-					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+				switch (dataTypeSize(getTensor(aDesc).dtype()))
+				{
+					case 1:
+						kernel_binary_logical_op(getPointer<uint8_t>(cMem), getPointer<uint8_t>(aMem), getPointer<uint8_t>(bMem), dimensions,
+								operation);
+						break;
+					case 2:
+						kernel_binary_logical_op(getPointer<uint16_t>(cMem), getPointer<uint16_t>(aMem), getPointer<uint16_t>(bMem), dimensions,
+								operation);
+						break;
+					default:
+					case 4:
+						kernel_binary_logical_op(getPointer<uint32_t>(cMem), getPointer<uint32_t>(aMem), getPointer<uint32_t>(bMem), dimensions,
+								operation);
+						break;
+				}
 			}
+			else
+			{
+				switch (getTensor(cDesc).dtype())
+				{
+					case AVOCADO_DTYPE_FLOAT16:
+						kernel_binary_op(getPointer<float16>(cMem), getPointer<float16>(aMem), getPointer<float16>(bMem), getAlphaValue(alpha1),
+								getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
+						break;
+					case AVOCADO_DTYPE_BFLOAT16:
+						kernel_binary_op(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getPointer<bfloat16>(bMem), getAlphaValue(alpha1),
+								getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
+						break;
+					case AVOCADO_DTYPE_FLOAT32:
+						kernel_binary_op(getPointer<float>(cMem), getPointer<float>(aMem), getPointer<float>(bMem), getAlphaValue(alpha1),
+								getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
+						break;
+					case AVOCADO_DTYPE_FLOAT64:
+						kernel_binary_op(getPointer<double>(cMem), getPointer<double>(aMem), getPointer<double>(bMem), getAlphaValue<double>(alpha1),
+								getAlphaValue<double>(alpha2), getBetaValue<double>(beta), dimensions, operation);
+						break;
+					default:
+						return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+				}
+			}
+
 			return AVOCADO_STATUS_SUCCESS;
 		}
 		avStatus_t refUnaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
 				const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
 			const avSize_t elements = getTensor(aDesc).volume();
-			switch (getTensor(cDesc).dtype())
+			if (is_logical(operation))
 			{
-				case AVOCADO_DTYPE_FLOAT16:
-					kernel_op_single_tensor(getPointer<float16>(cMem), getPointer<float16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
-							operation);
-					break;
-				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_op_single_tensor(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getAlphaValue(alpha), getBetaValue(beta),
-							elements, operation);
-					break;
-				case AVOCADO_DTYPE_FLOAT32:
-					kernel_op_single_tensor(getPointer<float>(cMem), getPointer<float>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
-							operation);
-					break;
-				case AVOCADO_DTYPE_FLOAT64:
-					kernel_op_single_tensor(getPointer<double>(cMem), getPointer<double>(aMem), getAlphaValue<double>(alpha),
-							getBetaValue<double>(beta), elements, operation);
-					break;
-				default:
-					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+				switch (dataTypeSize(getTensor(aDesc).dtype()))
+				{
+					case 1:
+						kernel_unary_logical_op(getPointer<uint8_t>(cMem), getPointer<uint8_t>(aMem), elements, operation);
+						break;
+					case 2:
+						kernel_unary_logical_op(getPointer<uint16_t>(cMem), getPointer<uint16_t>(aMem), elements, operation);
+						break;
+					default:
+					case 4:
+						kernel_unary_logical_op(getPointer<uint32_t>(cMem), getPointer<uint32_t>(aMem), elements, operation);
+						break;
+				}
+			}
+			else
+			{
+				switch (getTensor(cDesc).dtype())
+				{
+					case AVOCADO_DTYPE_FLOAT16:
+						kernel_unary_op(getPointer<float16>(cMem), getPointer<float16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
+								operation);
+						break;
+					case AVOCADO_DTYPE_BFLOAT16:
+						kernel_unary_op(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
+								operation);
+						break;
+					case AVOCADO_DTYPE_FLOAT32:
+						kernel_unary_op(getPointer<float>(cMem), getPointer<float>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
+								operation);
+						break;
+					case AVOCADO_DTYPE_FLOAT64:
+						kernel_unary_op(getPointer<double>(cMem), getPointer<double>(aMem), getAlphaValue<double>(alpha), getBetaValue<double>(beta),
+								elements, operation);
+						break;
+					default:
+						return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+				}
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
@@ -798,32 +878,46 @@ namespace avocado
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t refAddTensors(avContextDescriptor_t context, const void *alpha1, const void *alpha2, const avTensorDescriptor_t bDesc,
-				const avMemoryDescriptor_t bMem, const void *beta1, const void *beta2, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
-				avActivationType_t activation)
+		avStatus_t refAddTensors(avContextDescriptor_t context, const void *alpha3, const void *alpha1, const avTensorDescriptor_t aDesc,
+				const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
+				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, avActivationType_t activation)
 		{
 			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(cDesc), getTensor(bDesc));
 			switch (getTensor(cDesc).dtype())
 			{
 				case AVOCADO_DTYPE_INT8:
-					kernel_add_tensors(getPointer<int8_t>(cMem), getPointer<int8_t>(bMem), getAlphaValue(alpha1), getAlphaValue(alpha2),
-							getBetaValue(beta1), getBetaValue(beta2), dimensions, activation);
+				{
+					switch (getTensor(aDesc).dtype())
+					{
+						case AVOCADO_DTYPE_INT8:
+							kernel_add_tensors(getPointer<int8_t>(cMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<int8_t>(aMem),
+									getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta), dimensions, activation);
+							break;
+						case AVOCADO_DTYPE_INT32:
+							kernel_add_tensors(getPointer<int8_t>(cMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<int32_t>(aMem),
+									getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta), dimensions, activation);
+							break;
+						default:
+							return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+					}
 					break;
+				}
 				case AVOCADO_DTYPE_FLOAT16:
-					kernel_add_tensors(getPointer<float16>(cMem), getPointer<float16>(bMem), getAlphaValue(alpha1), getAlphaValue(alpha2),
-							getBetaValue(beta1), getBetaValue(beta2), dimensions, activation);
+					kernel_add_tensors(getPointer<float16>(cMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<float16>(aMem),
+							getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta), dimensions, activation);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_add_tensors(getPointer<bfloat16>(cMem), getPointer<bfloat16>(bMem), getAlphaValue(alpha1), getAlphaValue(alpha2),
-							getBetaValue(beta1), getBetaValue(beta2), dimensions, activation);
+					kernel_add_tensors(getPointer<bfloat16>(cMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<bfloat16>(aMem),
+							getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta), dimensions, activation);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					kernel_add_tensors(getPointer<float>(cMem), getPointer<float>(bMem), getAlphaValue(alpha1), getAlphaValue(alpha2),
-							getBetaValue(beta1), getBetaValue(beta2), dimensions, activation);
+					kernel_add_tensors(getPointer<float>(cMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<float>(aMem),
+							getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta), dimensions, activation);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_add_tensors(getPointer<double>(cMem), getPointer<double>(bMem), getAlphaValue<double>(alpha1),
-							getAlphaValue<double>(alpha2), getBetaValue<double>(beta1), getBetaValue<double>(beta2), dimensions, activation);
+					kernel_add_tensors(getPointer<double>(cMem), getAlphaValue<double>(alpha3), getAlphaValue<double>(alpha1),
+							getPointer<double>(aMem), getAlphaValue<double>(alpha2), getPointer<double>(bMem), getBetaValue<double>(beta), dimensions,
+							activation);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
