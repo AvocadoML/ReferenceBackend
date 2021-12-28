@@ -222,7 +222,8 @@ namespace avocado
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t yDesc, const avMemoryDescriptor_t yMem,
 				const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avTensorDescriptor_t dyDesc,
 				avMemoryDescriptor_t dyMem, const avTensorDescriptor_t scaleMeanVarDesc, const avMemoryDescriptor_t scaleMem,
-				const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, double epsilon)
+				const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, const void *alpha2, const void *beta2,
+				avMemoryDescriptor_t scaleUpdateMem, avMemoryDescriptor_t biasUpdateMem, double epsilon)
 		{
 			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(xDesc), getTensor(scaleMeanVarDesc));
 			switch (getTensor(xDesc).dtype())
@@ -232,30 +233,6 @@ namespace avocado
 					kernel_batchnorm_backward<float>(getAlphaValue(alpha), getBetaValue(beta), getPointer<float>(xMem), getPointer<float>(yMem),
 							getPointer<float>(dxMem), getPointer<float>(dyMem), getPointer<float>(scaleMem), getPointer<float>(meanMem),
 							getPointer<float>(varianceMem), epsilon, dimensions, activation);
-					break;
-				}
-				case AVOCADO_DTYPE_FLOAT64:
-				{
-					kernel_batchnorm_backward<double>(getAlphaValue<double>(alpha), getBetaValue<double>(beta), getPointer<double>(xMem),
-							getPointer<double>(yMem), getPointer<double>(dxMem), getPointer<double>(dyMem), getPointer<double>(scaleMem),
-							getPointer<double>(meanMem), getPointer<double>(varianceMem), epsilon, dimensions, activation);
-					break;
-				}
-				default:
-					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-			}
-			return AVOCADO_STATUS_SUCCESS;
-		}
-		avStatus_t refBatchNormUpdate(avContextDescriptor_t context, const void *alpha, const avTensorDescriptor_t xDesc,
-				const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, const void *beta,
-				const avTensorDescriptor_t scaleBiasDesc, avMemoryDescriptor_t scaleUpdateMem, avMemoryDescriptor_t biasUpdateMem,
-				const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, double epsilon)
-		{
-			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(xDesc), getTensor(scaleUpdateMem));
-			switch (getTensor(xDesc).dtype())
-			{
-				case AVOCADO_DTYPE_FLOAT32:
-				{
 					kernel_batchnorm_update<float>(getAlphaValue(alpha), getBetaValue(beta), getPointer<float>(xMem), getPointer<float>(dyMem),
 							getPointer<float>(scaleUpdateMem), getPointer<float>(biasUpdateMem), getPointer<float>(meanMem),
 							getPointer<float>(varianceMem), epsilon, dimensions);
@@ -263,6 +240,9 @@ namespace avocado
 				}
 				case AVOCADO_DTYPE_FLOAT64:
 				{
+					kernel_batchnorm_backward<double>(getAlphaValue<double>(alpha), getBetaValue<double>(beta), getPointer<double>(xMem),
+							getPointer<double>(yMem), getPointer<double>(dxMem), getPointer<double>(dyMem), getPointer<double>(scaleMem),
+							getPointer<double>(meanMem), getPointer<double>(varianceMem), epsilon, dimensions, activation);
 					kernel_batchnorm_update<double>(getAlphaValue(alpha), getBetaValue(beta), getPointer<double>(xMem), getPointer<double>(dyMem),
 							getPointer<double>(scaleUpdateMem), getPointer<double>(biasUpdateMem), getPointer<double>(meanMem),
 							getPointer<double>(varianceMem), epsilon, dimensions);
