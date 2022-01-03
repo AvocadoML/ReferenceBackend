@@ -289,7 +289,7 @@ namespace avocado
 		 * \param[out] cMem
 		 * \param[in] activation
 		 */
-		DLL_PUBLIC avStatus_t refAddTensors(avContextDescriptor_t context, const void *alpha3, const void *alpha1, const avTensorDescriptor_t aDesc,
+		DLL_PUBLIC avStatus_t refAddBias(avContextDescriptor_t context, const void *alpha3, const void *alpha1, const avTensorDescriptor_t aDesc,
 				const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, avActivationType_t activation);
 
@@ -668,12 +668,12 @@ namespace avocado
 		 * \param[in] filterDesc
 		 * \param[in] srcDesc
 		 * \param[in] srcMem
-		 * \param[in] colDesc
-		 * \param[out] colMem
+		 * \param[in] rowDesc
+		 * \param[out] rowMem
 		 */
-		DLL_PUBLIC avStatus_t refIm2Col(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t filterDesc,
-				const avTensorDescriptor_t srcDesc, const avMemoryDescriptor_t srcMem, const avTensorDescriptor_t colDesc,
-				avMemoryDescriptor_t colMem);
+		DLL_PUBLIC avStatus_t refIm2Row(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t filterDesc,
+				const avTensorDescriptor_t srcDesc, const avMemoryDescriptor_t srcMem, const avTensorDescriptor_t rowDesc,
+				avMemoryDescriptor_t rowMem);
 
 		/**
 		 * \brief Calculates required workspace size for refConvolutionBiasActivationForward.
@@ -687,21 +687,6 @@ namespace avocado
 		 */
 		DLL_PUBLIC avStatus_t refGetConvolutionWorkspaceSize(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
 				const avTensorDescriptor_t xDesc, const avTensorDescriptor_t wDesc, const avTensorDescriptor_t bDesc, avSize_t *result);
-
-		/**
-		 * \brief Precomputes some data for future use in refConvolutionBiasActivationForward method.
-		 *
-		 * \param[in] context Context in which the operation is performed.
-		 * \param[in] config Convolution descriptor.
-		 * \param[in] wDesc
-		 * \param[in] wMem
-		 * \param[in] bDesc
-		 * \param[in] bMem
-		 * \param[out] workspace Memory descriptor for some persistent workspace.
-		 */
-		DLL_PUBLIC avStatus_t refPrecomputeConvolutionWorkspace(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
-				const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
-				avMemoryDescriptor_t workspace);
 
 		/**
 		 * \brief Calculates convolution, adds bias and optionally some external data and applies activation function.
@@ -723,13 +708,13 @@ namespace avocado
 		 * \param[in] beta Scaling factor of the output tensor.
 		 * \param[in] yDesc Output tensor descriptor.
 		 * \param[out] yMem Output memory descriptor.
-		 * \param[in] workspace Memory descriptor of some persistent workspace as calculated by refPrecomputeConvolutionWorkspace method.
+		 * \param[in] workspaceMem Memory descriptor.
 		 */
 		DLL_PUBLIC avStatus_t refConvolutionBiasActivationForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
 				const void *alpha1, const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc,
 				const avMemoryDescriptor_t wMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2,
 				const avTensorDescriptor_t zDesc, const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc,
-				avMemoryDescriptor_t yMem, const avActivationType_t activation, avMemoryDescriptor_t workspace);
+				avMemoryDescriptor_t yMem, const avActivationType_t activation, avMemoryDescriptor_t workspaceMem);
 
 		/**
 		 * \brief Simplified version of the above method.
@@ -745,10 +730,31 @@ namespace avocado
 		 * \param[in] beta
 		 * \param[in] yDesc
 		 * \param[out] yMem
+		 * \param[in] workspaceMem Memory descriptor.
 		 */
 		DLL_PUBLIC avStatus_t refConvolutionForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
-				const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem);
+				const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem, avMemoryDescriptor_t workspaceMem);
+
+		/**
+		 * \brief Simplified version of the above method.
+		 * y = alpha * conv(x, w) + beta * y
+		 *
+		 * \param[in] context Context in which the operation is performed.
+		 * \param[in] config
+		 * \param[in] alpha
+		 * \param[in] dxDesc
+		 * \param[out] dxMem
+		 * \param[in] wDesc
+		 * \param[in] wMem
+		 * \param[in] beta
+		 * \param[in] dyDesc
+		 * \param[in] dyMem
+		 * \param[in] workspaceMem Memory descriptor.
+		 */
+		DLL_PUBLIC avStatus_t refConvolutionBackward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
+				const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
+				const void *beta, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, avMemoryDescriptor_t workspaceMem);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
@@ -761,10 +767,12 @@ namespace avocado
 		 * \param[in] beta
 		 * \param[in] dwDesc
 		 * \param[out] dwMem
+		 * \param[in] workspaceMem Memory descriptor.
 		 */
 		DLL_PUBLIC avStatus_t refConvolutionUpdate(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc,
-				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dwDesc, avMemoryDescriptor_t dwMem);
+				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dwDesc, avMemoryDescriptor_t dwMem,
+				avMemoryDescriptor_t workspaceMem);
 
 		/**
 		 * \brief Computes chosen metric function, averaged over entire batch.
