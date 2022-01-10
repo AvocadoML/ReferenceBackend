@@ -33,7 +33,7 @@ namespace
 		const int filter_height = filterDesc.dimension(1);
 		const int input_filters = filterDesc.lastDim();
 
-		const int padding_h = (config.mode == AVOCADO_CONVOLUTION_MODE) ? config.padding[0] : 1 - filter_height - config.padding[0];
+		const int padding_h = config.padding[0];
 		const int stride_h = config.stride[0];
 		const int dilation_h = config.dilation[0];
 
@@ -79,8 +79,8 @@ namespace
 		const int filter_width = filterDesc.dimension(2);
 		const int input_filters = filterDesc.lastDim();
 
-		const int padding_h = (config.mode == AVOCADO_CONVOLUTION_MODE) ? config.padding[0] : 1 - filter_height - config.padding[0];
-		const int padding_w = (config.mode == AVOCADO_CONVOLUTION_MODE) ? config.padding[1] : 1 - filter_width - config.padding[1];
+		const int padding_h = config.padding[0];
+		const int padding_w = config.padding[1];
 
 		const int stride_h = config.stride[0];
 		const int stride_w = config.stride[1];

@@ -24,25 +24,27 @@ namespace avocado
 		{
 			return internal::destroy<MemoryDescriptor>(desc);
 		}
-		avStatus_t refSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstSize, const void *pattern, avSize_t patternSize)
+		avStatus_t refSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset, avSize_t dstSize, const void *pattern,
+				avSize_t patternSize)
 		{
 			if (getPointer(dst) == nullptr)
 				return AVOCADO_STATUS_BAD_PARAM;
 			if (pattern == nullptr)
 			{
-				std::memset(getPointer(dst), 0, dstSize);
+				std::memset(getPointer<int8_t>(dst) + dstOffset, 0, dstSize);
 				return AVOCADO_STATUS_SUCCESS;
 			}
 
-			if (dstSize % patternSize != 0)
+			if (dstSize % patternSize != 0 or dstOffset % patternSize != 0)
 				return AVOCADO_STATUS_BAD_PARAM;
 			for (avSize_t i = 0; i < dstSize; i += patternSize)
-				std::memcpy(getPointer<int8_t>(dst) + i, pattern, patternSize);
+				std::memcpy(getPointer<int8_t>(dst) + dstOffset + i, pattern, patternSize);
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t refCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, const avMemoryDescriptor_t src, avSize_t count)
+		avStatus_t refCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset, const avMemoryDescriptor_t src,
+				avSize_t srcOffset, avSize_t count)
 		{
-			std::memcpy(getPointer(dst), getPointer(src), count);
+			std::memcpy(getPointer<int8_t>(dst) + dstOffset, getPointer<int8_t>(src) + srcOffset, count);
 			return AVOCADO_STATUS_SUCCESS;
 		}
 		void* refGetMemoryPointer(avMemoryDescriptor_t mem)

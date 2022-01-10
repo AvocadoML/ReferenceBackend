@@ -17,11 +17,6 @@ namespace
 {
 	using namespace avocado::backend;
 
-	struct int4
-	{
-			int x, y, z, w;
-	};
-
 	template<typename T, typename U>
 	void kernel_reduce_tensor(T *dst, const T *src, U alpha, U beta, BroadcastedDimensions dims, avReduceOp_t operation) noexcept
 	{

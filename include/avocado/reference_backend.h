@@ -139,8 +139,8 @@ namespace avocado
 		 * \retval AVOCADO_STATUS_SUCCESS The memory was successfully set.
 		 * \retval AVOCADO_STATUS_BAD_PARAM The dstSize is not a multiple of patternSize.
 		 */
-		DLL_PUBLIC avStatus_t refSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstSize, const void *pattern,
-				avSize_t patternSize);
+		DLL_PUBLIC avStatus_t refSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset, avSize_t dstSize,
+				const void *pattern, avSize_t patternSize);
 
 		/**
 		 * \brief Copies block of memory.
@@ -153,7 +153,8 @@ namespace avocado
 		 * \retval AVOCADO_STATUS_SUCCESS The memory was successfully copied.
 		 * \retval AVOCADO_STATUS_BAD_PARAM Either dst descriptor or src descriptor is invalid.
 		 */
-		DLL_PUBLIC avStatus_t refCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, const avMemoryDescriptor_t src, avSize_t count);
+		DLL_PUBLIC avStatus_t refCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset,
+				const avMemoryDescriptor_t src, avSize_t srcOffset, avSize_t count);
 
 		/**
 		 * \brief This method returns pointer associated with the memory descriptor.
