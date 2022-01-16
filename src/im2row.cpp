@@ -4,8 +4,9 @@
  *  Created on: Jan 3, 2022
  *      Author: Maciej Kozarzewski
  */
-#include <avocado/reference_backend.h>
-#include <avocado/backend/backend_descriptors.hpp>
+#include <backend_descriptors.hpp>
+#include <ReferenceBackend/reference_backend.h>
+
 #include "utils.hpp"
 #include "activations.hpp"
 
@@ -37,7 +38,7 @@ namespace
 		const int stride_h = config.stride[0];
 		const int dilation_h = config.dilation[0];
 
-		const T padding_value = getScalarValue<T>(config.padding_value);
+		const T padding_value = getScalarValue<T>(config.padding_value.data());
 
 		TensorDescriptor output_shape = getConvolutionOutputShape(config, srcDesc, filterDesc);
 
@@ -88,7 +89,7 @@ namespace
 		const int dilation_h = config.dilation[0];
 		const int dilation_w = config.dilation[1];
 
-		const T padding_value = getScalarValue<T>(config.padding_value);
+		const T padding_value = getScalarValue<T>(config.padding_value.data());
 
 		TensorDescriptor output_shape = getConvolutionOutputShape(config, srcDesc, filterDesc);
 

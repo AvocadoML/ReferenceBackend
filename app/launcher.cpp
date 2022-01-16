@@ -5,8 +5,8 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <avocado/reference_backend.h>
-#include <avocado/backend/backend_descriptors.hpp>
+#include <backend_descriptors.hpp>
+#include <ReferenceBackend/reference_backend.h>
 
 #include <initializer_list>
 #include <stddef.h>
@@ -25,7 +25,7 @@ class TensorWrapper
 			refCreateTensorDescriptor(&(this->desc));
 			refSetTensorDescriptor(desc, dtype, dimensions.size(), dimensions.begin());
 			refCreateMemoryDescriptor(&(this->mem), getTensor(desc).sizeInBytes());
-			refSetMemory(0, mem, getTensor(desc).sizeInBytes(), nullptr, 0);
+			refSetMemory(0, mem, 0, getTensor(desc).sizeInBytes(), nullptr, 0);
 		}
 		~TensorWrapper()
 		{
@@ -35,7 +35,7 @@ class TensorWrapper
 		template<typename T>
 		void fill(T value)
 		{
-			refSetMemory(0, desc, getTensor(desc).sizeInBytes(), &value, sizeof(value));
+			refSetMemory(0, desc, 0, getTensor(desc).sizeInBytes(), &value, sizeof(value));
 		}
 		template<typename T>
 		T& at(std::initializer_list<int> idx)

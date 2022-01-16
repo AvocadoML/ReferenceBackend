@@ -5,8 +5,8 @@
  *      Author: Maciej Kozarzewski
  */
 
-#ifndef AVOCADO_REFERENCE_BACKEND_H_
-#define AVOCADO_REFERENCE_BACKEND_H_
+#ifndef REFERENCEBACKEND_REFERENCE_BACKEND_H_
+#define REFERENCEBACKEND_REFERENCE_BACKEND_H_
 
 #include <avocado/backend/backend_defs.h>
 
@@ -918,4 +918,4 @@ namespace avocado
 	} /* namespace backend */
 } /* namespace avocado */
 
-#endif /* AVOCADO_REFERENCE_BACKEND_H_ */
+#endif /* REFERENCEBACKEND_REFERENCE_BACKEND_H_ */

@@ -5,10 +5,10 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <avocado/reference_backend.h>
-#include <avocado/backend/backend_descriptors.hpp>
+#include <backend_descriptors.hpp>
 #include "activations.hpp"
 
+#include <ReferenceBackend/reference_backend.h>
 #include <memory>
 
 namespace
@@ -68,7 +68,6 @@ namespace
 		for (avSize_t i = 0; i < elements; i++)
 			gradient_prev[i] = alpha * activation_backward(type, gradient_next[i], output[i]) + beta * gradient_prev[i];
 	}
-
 }
 
 namespace avocado

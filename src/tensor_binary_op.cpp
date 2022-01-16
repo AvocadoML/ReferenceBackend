@@ -4,8 +4,8 @@
  *  Created on: Nov 12, 2021
  *      Author: Maciej Kozarzewski
  */
-#include <avocado/reference_backend.h>
-#include <avocado/backend/backend_descriptors.hpp>
+#include <backend_descriptors.hpp>
+#include <ReferenceBackend/reference_backend.h>
 
 #include "fp16.hpp"
 #include "utils.hpp"

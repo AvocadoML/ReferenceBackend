@@ -5,8 +5,8 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <avocado/reference_backend.h>
-#include <avocado/backend/backend_descriptors.hpp>
+#include <backend_descriptors.hpp>
+#include <ReferenceBackend/reference_backend.h>
 
 namespace avocado
 {
