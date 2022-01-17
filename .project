@@ -30,5 +30,20 @@
 			<type>2</type>
 			<location>/home/maciek/Avocado/Avocado/extern/gtest</location>
 		</link>
+		<link>
+			<name>include/ReferenceBackend/backend_defs.h</name>
+			<type>1</type>
+			<location>/home/maciek/Avocado/Avocado/include/Avocado/backend/backend_defs.h</location>
+		</link>
+		<link>
+			<name>include/ReferenceBackend/backend_descriptors.cpp</name>
+			<type>1</type>
+			<location>/home/maciek/Avocado/Avocado/include/Avocado/backend/backend_descriptors.cpp</location>
+		</link>
+		<link>
+			<name>include/ReferenceBackend/backend_descriptors.hpp</name>
+			<type>1</type>
+			<location>/home/maciek/Avocado/Avocado/include/Avocado/backend/backend_descriptors.hpp</location>
+		</link>
 	</linkedResources>
 </projectDescription>

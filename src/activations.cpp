@@ -81,24 +81,24 @@ namespace avocado
 //			assert(same_type(input, output));
 //			assert(same_shape(input, output));
 
-			const avSize_t elements = getTensor(xDesc).volume();
-			switch (getTensor(xDesc).dtype())
+			const avSize_t elements = reference::getTensor(xDesc).volume();
+			switch (reference::getTensor(xDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT16:
-					kernel_activation_forward<float16, float>(activation, getAlphaValue(alpha), getPointer<float16>(xMem), getBetaValue(beta),
-							getPointer<float16>(yMem), elements);
+					kernel_activation_forward<float16, float>(activation, reference::getAlphaValue(alpha), reference::getPointer<float16>(xMem),
+							reference::getBetaValue(beta), reference::getPointer<float16>(yMem), elements);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_activation_forward<bfloat16, float>(activation, getAlphaValue(alpha), getPointer<bfloat16>(xMem), getBetaValue(beta),
-							getPointer<bfloat16>(yMem), elements);
+					kernel_activation_forward<bfloat16, float>(activation, reference::getAlphaValue(alpha), reference::getPointer<bfloat16>(xMem),
+							reference::getBetaValue(beta), reference::getPointer<bfloat16>(yMem), elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					kernel_activation_forward<float>(activation, getAlphaValue(alpha), getPointer<float>(xMem), getBetaValue(beta),
-							getPointer<float>(yMem), elements);
+					kernel_activation_forward<float>(activation, reference::getAlphaValue(alpha), reference::getPointer<float>(xMem),
+							reference::getBetaValue(beta), reference::getPointer<float>(yMem), elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_activation_forward<double>(activation, getAlphaValue<double>(alpha), getPointer<double>(xMem), getBetaValue<double>(beta),
-							getPointer<double>(yMem), elements);
+					kernel_activation_forward<double>(activation, reference::getAlphaValue<double>(alpha), reference::getPointer<double>(xMem),
+							reference::getBetaValue<double>(beta), reference::getPointer<double>(yMem), elements);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
@@ -109,16 +109,16 @@ namespace avocado
 				const avTensorDescriptor_t yDesc, const avMemoryDescriptor_t yMem, const avTensorDescriptor_t dyDesc,
 				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
 		{
-			const avSize_t elements = getTensor(yDesc).volume();
-			switch (getTensor(yDesc).dtype())
+			const avSize_t elements = reference::getTensor(yDesc).volume();
+			switch (reference::getTensor(yDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT32:
-					kernel_activation_backward<float>(activation, getAlphaValue(alpha), getPointer<float>(dxMem), getBetaValue(beta),
-							getPointer<float>(dyMem), getPointer<float>(yMem), elements);
+					kernel_activation_backward<float>(activation, reference::getAlphaValue(alpha), reference::getPointer<float>(dxMem),
+							reference::getBetaValue(beta), reference::getPointer<float>(dyMem), reference::getPointer<float>(yMem), elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_activation_backward<double>(activation, getAlphaValue(alpha), getPointer<double>(dxMem), getBetaValue(beta),
-							getPointer<double>(dyMem), getPointer<double>(yMem), elements);
+					kernel_activation_backward<double>(activation, reference::getAlphaValue(alpha), reference::getPointer<double>(dxMem),
+							reference::getBetaValue(beta), reference::getPointer<double>(dyMem), reference::getPointer<double>(yMem), elements);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
@@ -132,32 +132,32 @@ namespace avocado
 			avSize_t first_dim, last_dim;
 			if (mode == AVOCADO_SOFTMAX_MODE_CHANNEL)
 			{
-				first_dim = getTensor(xDesc).volumeWithoutLastDim();
-				last_dim = getTensor(xDesc).lastDim();
+				first_dim = reference::getTensor(xDesc).volumeWithoutLastDim();
+				last_dim = reference::getTensor(xDesc).lastDim();
 			}
 			else
 			{
-				first_dim = getTensor(xDesc).firstDim();
-				last_dim = getTensor(xDesc).volumeWithoutFirstDim();
+				first_dim = reference::getTensor(xDesc).firstDim();
+				last_dim = reference::getTensor(xDesc).volumeWithoutFirstDim();
 			}
 
-			switch (getTensor(xDesc).dtype())
+			switch (reference::getTensor(xDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT16:
-					kernel_softmax_forward<float16, float>(getAlphaValue(alpha), getPointer<float16>(xDesc), getBetaValue(beta),
-							getPointer<float16>(yDesc), first_dim, last_dim);
+					kernel_softmax_forward<float16, float>(reference::getAlphaValue(alpha), reference::getPointer<float16>(xDesc),
+							reference::getBetaValue(beta), reference::getPointer<float16>(yDesc), first_dim, last_dim);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_softmax_forward<bfloat16, float>(getAlphaValue(alpha), getPointer<bfloat16>(xDesc), getBetaValue(beta),
-							getPointer<bfloat16>(yDesc), first_dim, last_dim);
+					kernel_softmax_forward<bfloat16, float>(reference::getAlphaValue(alpha), reference::getPointer<bfloat16>(xDesc),
+							reference::getBetaValue(beta), reference::getPointer<bfloat16>(yDesc), first_dim, last_dim);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					kernel_softmax_forward<float>(getAlphaValue(alpha), getPointer<float>(xDesc), getBetaValue(beta), getPointer<float>(yDesc),
-							first_dim, last_dim);
+					kernel_softmax_forward<float>(reference::getAlphaValue(alpha), reference::getPointer<float>(xDesc), reference::getBetaValue(beta),
+							reference::getPointer<float>(yDesc), first_dim, last_dim);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_softmax_forward<double>(getAlphaValue<double>(alpha), getPointer<double>(xDesc), getBetaValue<double>(beta),
-							getPointer<double>(yDesc), first_dim, last_dim);
+					kernel_softmax_forward<double>(reference::getAlphaValue<double>(alpha), reference::getPointer<double>(xDesc),
+							reference::getBetaValue<double>(beta), reference::getPointer<double>(yDesc), first_dim, last_dim);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
@@ -168,16 +168,18 @@ namespace avocado
 				const avMemoryDescriptor_t yMem, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, const void *beta,
 				const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
 		{
-			const avSize_t elements = getTensor(yDesc).volume();
-			switch (getTensor(yDesc).dtype())
+			const avSize_t elements = reference::getTensor(yDesc).volume();
+			switch (reference::getTensor(yDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT32:
-					kernel_activation_backward<float>(AVOCADO_ACTIVATION_SOFTMAX, getAlphaValue(alpha), getPointer<float>(dxMem), getBetaValue(beta),
-							getPointer<float>(dyMem), getPointer<float>(yMem), elements);
+					kernel_activation_backward<float>(AVOCADO_ACTIVATION_SOFTMAX, reference::getAlphaValue(alpha),
+							reference::getPointer<float>(dxMem), reference::getBetaValue(beta), reference::getPointer<float>(dyMem),
+							reference::getPointer<float>(yMem), elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_activation_backward<double>(AVOCADO_ACTIVATION_SOFTMAX, getAlphaValue(alpha), getPointer<double>(dxMem),
-							getBetaValue(beta), getPointer<double>(dyMem), getPointer<double>(yMem), elements);
+					kernel_activation_backward<double>(AVOCADO_ACTIVATION_SOFTMAX, reference::getAlphaValue(alpha),
+							reference::getPointer<double>(dxMem), reference::getBetaValue(beta), reference::getPointer<double>(dyMem),
+							reference::getPointer<double>(yMem), elements);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;

@@ -14,51 +14,51 @@ namespace avocado
 	{
 		avStatus_t refCreateMemoryDescriptor(avMemoryDescriptor_t *result, avSize_t sizeInBytes)
 		{
-			return internal::create<MemoryDescriptor>(result, sizeInBytes);
+			return reference::create<reference::MemoryDescriptor>(result, sizeInBytes);
 		}
 		avStatus_t refCreateMemoryView(avMemoryDescriptor_t *result, const avMemoryDescriptor_t desc, avSize_t sizeInBytes, avSize_t offsetInBytes)
 		{
-			return internal::create<MemoryDescriptor>(result, getMemory(desc), sizeInBytes, offsetInBytes);
+			return reference::create<reference::MemoryDescriptor>(result, reference::getMemory(desc), sizeInBytes, offsetInBytes);
 		}
 		avStatus_t refDestroyMemoryDescriptor(avMemoryDescriptor_t desc)
 		{
-			return internal::destroy<MemoryDescriptor>(desc);
+			return reference::destroy<reference::MemoryDescriptor>(desc);
 		}
 		avStatus_t refSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset, avSize_t dstSize, const void *pattern,
 				avSize_t patternSize)
 		{
-			if (getPointer(dst) == nullptr)
+			if (reference::getPointer(dst) == nullptr)
 				return AVOCADO_STATUS_BAD_PARAM;
 			if (pattern == nullptr)
 			{
-				std::memset(getPointer<int8_t>(dst) + dstOffset, 0, dstSize);
+				std::memset(reference::getPointer<int8_t>(dst) + dstOffset, 0, dstSize);
 				return AVOCADO_STATUS_SUCCESS;
 			}
 
 			if (dstSize % patternSize != 0 or dstOffset % patternSize != 0)
 				return AVOCADO_STATUS_BAD_PARAM;
 			for (avSize_t i = 0; i < dstSize; i += patternSize)
-				std::memcpy(getPointer<int8_t>(dst) + dstOffset + i, pattern, patternSize);
+				std::memcpy(reference::getPointer<int8_t>(dst) + dstOffset + i, pattern, patternSize);
 			return AVOCADO_STATUS_SUCCESS;
 		}
 		avStatus_t refCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset, const avMemoryDescriptor_t src,
 				avSize_t srcOffset, avSize_t count)
 		{
-			std::memcpy(getPointer<int8_t>(dst) + dstOffset, getPointer<int8_t>(src) + srcOffset, count);
+			std::memcpy(reference::getPointer<int8_t>(dst) + dstOffset, reference::getPointer<int8_t>(src) + srcOffset, count);
 			return AVOCADO_STATUS_SUCCESS;
 		}
 		void* refGetMemoryPointer(avMemoryDescriptor_t mem)
 		{
-			return getPointer(mem);
+			return reference::getPointer(mem);
 		}
 
 		avStatus_t refCreateContextDescriptor(avContextDescriptor_t *result)
 		{
-			return internal::create<ContextDescriptor>(result);
+			return reference::create<reference::ContextDescriptor>(result);
 		}
 		avStatus_t refDestroyContextDescriptor(avContextDescriptor_t desc)
 		{
-			return internal::destroy<ContextDescriptor>(desc);
+			return reference::destroy<reference::ContextDescriptor>(desc);
 		}
 		avStatus_t refSynchronizeWithContext(avContextDescriptor_t context)
 		{
@@ -74,11 +74,11 @@ namespace avocado
 
 		avStatus_t refCreateTensorDescriptor(avTensorDescriptor_t *result)
 		{
-			return internal::create<TensorDescriptor>(result);
+			return reference::create<reference::TensorDescriptor>(result);
 		}
 		avStatus_t refDestroyTensorDescriptor(avTensorDescriptor_t desc)
 		{
-			return internal::destroy<TensorDescriptor>(desc);
+			return reference::destroy<reference::TensorDescriptor>(desc);
 		}
 		avStatus_t refSetTensorDescriptor(avTensorDescriptor_t desc, avDataType_t dtype, int nbDims, const int dimensions[])
 		{
@@ -86,7 +86,7 @@ namespace avocado
 				return AVOCADO_STATUS_BAD_PARAM;
 			try
 			{
-				getTensor(desc).set(dtype, nbDims, dimensions);
+				reference::getTensor(desc).set(dtype, nbDims, dimensions);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;
@@ -97,7 +97,7 @@ namespace avocado
 		{
 			try
 			{
-				getTensor(desc).get(dtype, nbDims, dimensions);
+				reference::getTensor(desc).get(dtype, nbDims, dimensions);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;
@@ -107,18 +107,18 @@ namespace avocado
 
 		avStatus_t refCreateConvolutionDescriptor(avConvolutionDescriptor_t *result)
 		{
-			return internal::create<ConvolutionDescriptor>(result);
+			return reference::create<reference::ConvolutionDescriptor>(result);
 		}
 		avStatus_t refDestroyConvolutionDescriptor(avConvolutionDescriptor_t desc)
 		{
-			return internal::destroy<ConvolutionDescriptor>(desc);
+			return reference::destroy<reference::ConvolutionDescriptor>(desc);
 		}
 		avStatus_t refSetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionMode_t mode, int nbDims, const int padding[],
 				const int strides[], const int dilation[], int groups, const void *paddingValue)
 		{
 			try
 			{
-				getConvolution(desc).set(mode, nbDims, strides, padding, dilation, groups, paddingValue);
+				reference::getConvolution(desc).set(mode, nbDims, strides, padding, dilation, groups, paddingValue);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;
@@ -130,7 +130,7 @@ namespace avocado
 		{
 			try
 			{
-				getConvolution(desc).get(mode, nbDims, strides, padding, dilation, groups, paddingValue);
+				reference::getConvolution(desc).get(mode, nbDims, strides, padding, dilation, groups, paddingValue);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;
@@ -140,17 +140,17 @@ namespace avocado
 
 		avStatus_t refCreateOptimizerDescriptor(avOptimizerDescriptor_t *result)
 		{
-			return internal::create<OptimizerDescriptor>(result);
+			return reference::create<reference::OptimizerDescriptor>(result);
 		}
 		avStatus_t refDestroyOptimizerDescriptor(avOptimizerDescriptor_t desc)
 		{
-			return internal::destroy<OptimizerDescriptor>(desc);
+			return reference::destroy<reference::OptimizerDescriptor>(desc);
 		}
 		avStatus_t refSetOptimizerSGD(avOptimizerDescriptor_t desc, double learningRate, bool useMomentum, bool useNesterov, double beta1)
 		{
 			try
 			{
-				getOptimizer(desc).set_sgd(learningRate, useMomentum, useNesterov, beta1);
+				reference::getOptimizer(desc).set_sgd(learningRate, useMomentum, useNesterov, beta1);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;
@@ -161,7 +161,7 @@ namespace avocado
 		{
 			try
 			{
-				getOptimizer(desc).get_sgd(learningRate, useMomentum, useNesterov, beta1);
+				reference::getOptimizer(desc).get_sgd(learningRate, useMomentum, useNesterov, beta1);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;
@@ -172,7 +172,7 @@ namespace avocado
 		{
 			try
 			{
-				getOptimizer(desc).set_adam(learningRate, beta1, beta2);
+				reference::getOptimizer(desc).set_adam(learningRate, beta1, beta2);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;
@@ -183,7 +183,7 @@ namespace avocado
 		{
 			try
 			{
-				getOptimizer(desc).get_adam(learningRate, beta1, beta2);
+				reference::getOptimizer(desc).get_adam(learningRate, beta1, beta2);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;
@@ -196,7 +196,7 @@ namespace avocado
 				return AVOCADO_STATUS_BAD_PARAM;
 			try
 			{
-				getOptimizer(desc).get_type(type);
+				reference::getOptimizer(desc).get_type(type);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;
@@ -209,7 +209,7 @@ namespace avocado
 				return AVOCADO_STATUS_BAD_PARAM;
 			try
 			{
-				getOptimizer(desc).get_workspace_size(result, getTensor(wDesc));
+				reference::getOptimizer(desc).get_workspace_size(result, reference::getTensor(wDesc));
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;

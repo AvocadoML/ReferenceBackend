@@ -84,41 +84,41 @@ namespace avocado
 		avStatus_t refUnaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
 				const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const avSize_t elements = getTensor(aDesc).volume();
-			if (is_logical(operation))
+			const avSize_t elements = reference::getTensor(aDesc).volume();
+			if (reference::is_logical(operation))
 			{
-				switch (dataTypeSize(getTensor(aDesc).dtype()))
+				switch (reference::dataTypeSize(reference::getTensor(aDesc).dtype()))
 				{
 					case 1:
-						kernel_unary_logical_op(getPointer<uint8_t>(cMem), getPointer<uint8_t>(aMem), elements, operation);
+						kernel_unary_logical_op(reference::getPointer<uint8_t>(cMem), reference::getPointer<uint8_t>(aMem), elements, operation);
 						break;
 					case 2:
-						kernel_unary_logical_op(getPointer<uint16_t>(cMem), getPointer<uint16_t>(aMem), elements, operation);
+						kernel_unary_logical_op(reference::getPointer<uint16_t>(cMem), reference::getPointer<uint16_t>(aMem), elements, operation);
 						break;
 					default:
 					case 4:
-						kernel_unary_logical_op(getPointer<uint32_t>(cMem), getPointer<uint32_t>(aMem), elements, operation);
+						kernel_unary_logical_op(reference::getPointer<uint32_t>(cMem), reference::getPointer<uint32_t>(aMem), elements, operation);
 						break;
 				}
 			}
 			else
 			{
-				switch (getTensor(cDesc).dtype())
+				switch (reference::getTensor(cDesc).dtype())
 				{
 					case AVOCADO_DTYPE_FLOAT16:
-						kernel_unary_op(getPointer<float16>(cMem), getPointer<float16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
+						kernel_unary_op(reference::getPointer<float16>(cMem), reference::getPointer<float16>(aMem), reference::getAlphaValue(alpha), reference::getBetaValue(beta), elements,
 								operation);
 						break;
 					case AVOCADO_DTYPE_BFLOAT16:
-						kernel_unary_op(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
+						kernel_unary_op(reference::getPointer<bfloat16>(cMem), reference::getPointer<bfloat16>(aMem), reference::getAlphaValue(alpha), reference::getBetaValue(beta), elements,
 								operation);
 						break;
 					case AVOCADO_DTYPE_FLOAT32:
-						kernel_unary_op(getPointer<float>(cMem), getPointer<float>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
+						kernel_unary_op(reference::getPointer<float>(cMem), reference::getPointer<float>(aMem), reference::getAlphaValue(alpha), reference::getBetaValue(beta), elements,
 								operation);
 						break;
 					case AVOCADO_DTYPE_FLOAT64:
-						kernel_unary_op(getPointer<double>(cMem), getPointer<double>(aMem), getAlphaValue<double>(alpha), getBetaValue<double>(beta),
+						kernel_unary_op(reference::getPointer<double>(cMem), reference::getPointer<double>(aMem), reference::getAlphaValue<double>(alpha), reference::getBetaValue<double>(beta),
 								elements, operation);
 						break;
 					default:

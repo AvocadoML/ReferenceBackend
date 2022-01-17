@@ -24,7 +24,8 @@ set(libsrc 	src/activations.cpp
 			src/tensor_binary_op.cpp
 			src/tensor_op.cpp
 			src/tensor_reduction.cpp
-			src/tensor_unary_op.cpp)
+			src/tensor_unary_op.cpp
+			${PATH_TO_MAIN_LIB}/include/Avocado/backend/backend_descriptors.cpp)
 
 if(BUILD_SHARED_LIBS)
   set(LIBRARY_NAME "AvocadoReferenceBackend")

@@ -205,37 +205,37 @@ namespace avocado
 			switch (dstType)
 			{
 				case AVOCADO_DTYPE_UINT8:
-					convert_helper(getPointer<uint8_t>(dst), getPointer(src), elements, srcType);
+					convert_helper(reference::getPointer<uint8_t>(dst), reference::getPointer(src), elements, srcType);
 					break;
 				case AVOCADO_DTYPE_INT8:
-					convert_helper(getPointer<int8_t>(dst), getPointer(src), elements, srcType);
+					convert_helper(reference::getPointer<int8_t>(dst), reference::getPointer(src), elements, srcType);
 					break;
 				case AVOCADO_DTYPE_INT16:
-					convert_helper(getPointer<int16_t>(dst), getPointer(src), elements, srcType);
+					convert_helper(reference::getPointer<int16_t>(dst), reference::getPointer(src), elements, srcType);
 					break;
 				case AVOCADO_DTYPE_INT32:
-					convert_helper(getPointer<int32_t>(dst), getPointer(src), elements, srcType);
+					convert_helper(reference::getPointer<int32_t>(dst), reference::getPointer(src), elements, srcType);
 					break;
 				case AVOCADO_DTYPE_INT64:
-					convert_helper(getPointer<int64_t>(dst), getPointer(src), elements, srcType);
+					convert_helper(reference::getPointer<int64_t>(dst), reference::getPointer(src), elements, srcType);
 					break;
 				case AVOCADO_DTYPE_FLOAT16:
-					convert_helper(getPointer<float16>(dst), getPointer(src), elements, srcType);
+					convert_helper(reference::getPointer<float16>(dst), reference::getPointer(src), elements, srcType);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					convert_helper(getPointer<bfloat16>(dst), getPointer(src), elements, srcType);
+					convert_helper(reference::getPointer<bfloat16>(dst), reference::getPointer(src), elements, srcType);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					convert_helper(getPointer<float>(dst), getPointer(src), elements, srcType);
+					convert_helper(reference::getPointer<float>(dst), reference::getPointer(src), elements, srcType);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					convert_helper(getPointer<double>(dst), getPointer(src), elements, srcType);
+					convert_helper(reference::getPointer<double>(dst), reference::getPointer(src), elements, srcType);
 					break;
 				case AVOCADO_DTYPE_COMPLEX32:
-					convert_helper(getPointer<std::complex<float>>(dst), getPointer(src), elements, srcType);
+					convert_helper(reference::getPointer<std::complex<float>>(dst), reference::getPointer(src), elements, srcType);
 					break;
 				case AVOCADO_DTYPE_COMPLEX64:
-					convert_helper(getPointer<std::complex<double>>(dst), getPointer(src), elements, srcType);
+					convert_helper(reference::getPointer<std::complex<double>>(dst), reference::getPointer(src), elements, srcType);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;

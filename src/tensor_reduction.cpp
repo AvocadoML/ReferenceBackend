@@ -18,7 +18,7 @@ namespace
 	using namespace avocado::backend;
 
 	template<typename T, typename U>
-	void kernel_reduce_tensor(T *dst, const T *src, U alpha, U beta, BroadcastedDimensions dims, avReduceOp_t operation) noexcept
+	void kernel_reduce_tensor(T *dst, const T *src, U alpha, U beta, reference::BroadcastedDimensions dims, avReduceOp_t operation) noexcept
 	{
 		std::unique_ptr<T[]> workspace = std::make_unique<T[]>(dims.last);
 
@@ -117,24 +117,24 @@ namespace avocado
 		avStatus_t refReduceTensor(avContextDescriptor_t context, avReduceOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
 				const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(aDesc), getTensor(cDesc));
-			switch (getTensor(cDesc).dtype())
+			reference::BroadcastedDimensions dimensions = getBroadcastDimensions(reference::getTensor(aDesc), reference::getTensor(cDesc));
+			switch (reference::getTensor(cDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT16:
-					kernel_reduce_tensor(getPointer<float16>(cMem), getPointer<float16>(aMem), getAlphaValue(alpha), getBetaValue(beta), dimensions,
-							operation);
+					kernel_reduce_tensor(reference::getPointer<float16>(cMem), reference::getPointer<float16>(aMem), reference::getAlphaValue(alpha),
+							reference::getBetaValue(beta), dimensions, operation);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_reduce_tensor(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getAlphaValue(alpha), getBetaValue(beta), dimensions,
-							operation);
+					kernel_reduce_tensor(reference::getPointer<bfloat16>(cMem), reference::getPointer<bfloat16>(aMem),
+							reference::getAlphaValue(alpha), reference::getBetaValue(beta), dimensions, operation);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					kernel_reduce_tensor(getPointer<float>(cMem), getPointer<float>(aMem), getAlphaValue(alpha), getBetaValue(beta), dimensions,
-							operation);
+					kernel_reduce_tensor(reference::getPointer<float>(cMem), reference::getPointer<float>(aMem), reference::getAlphaValue(alpha),
+							reference::getBetaValue(beta), dimensions, operation);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_reduce_tensor(getPointer<double>(cMem), getPointer<double>(aMem), getAlphaValue<double>(alpha), getBetaValue<double>(beta),
-							dimensions, operation);
+					kernel_reduce_tensor(reference::getPointer<double>(cMem), reference::getPointer<double>(aMem),
+							reference::getAlphaValue<double>(alpha), reference::getBetaValue<double>(beta), dimensions, operation);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;

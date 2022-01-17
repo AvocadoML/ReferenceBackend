@@ -36,30 +36,30 @@ namespace avocado
 		avStatus_t refRegularizerL2(avContextDescriptor_t context, const avTensorDescriptor_t gradientDesc, avMemoryDescriptor_t gradientMem,
 				const avTensorDescriptor_t weightDesc, const avMemoryDescriptor_t weightMem, const void *coefficient, const void *offset, void *loss)
 		{
-			const avSize_t elements = getTensor(gradientDesc).volume();
-			switch (getTensor(gradientDesc).dtype())
+			const avSize_t elements = reference::getTensor(gradientDesc).volume();
+			switch (reference::getTensor(gradientDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT32:
 				{
-					kernel_regularizer_l2(getPointer<float>(gradientMem), getPointer<float>(weightMem), getScalarValue<float>(coefficient),
-							getScalarValue<float>(offset), elements);
+					kernel_regularizer_l2(reference::getPointer<float>(gradientMem), reference::getPointer<float>(weightMem), reference::getScalarValue<float>(coefficient),
+							reference::getScalarValue<float>(offset), elements);
 					if (loss != nullptr)
 					{
-						float l2_loss = kernel_loss_l2(getPointer<float>(weightMem), getScalarValue<float>(coefficient),
-								getScalarValue<float>(offset), elements);
-						setScalarValue(loss, l2_loss);
+						float l2_loss = kernel_loss_l2(reference::getPointer<float>(weightMem), reference::getScalarValue<float>(coefficient),
+								reference::getScalarValue<float>(offset), elements);
+						reference::setScalarValue(loss, l2_loss);
 					}
 					break;
 				}
 				case AVOCADO_DTYPE_FLOAT64:
 				{
-					kernel_regularizer_l2(getPointer<double>(gradientMem), getPointer<double>(weightMem), getScalarValue<double>(coefficient),
-							getScalarValue<double>(offset), elements);
+					kernel_regularizer_l2(reference::getPointer<double>(gradientMem), reference::getPointer<double>(weightMem), reference::getScalarValue<double>(coefficient),
+							reference::getScalarValue<double>(offset), elements);
 					if (loss != nullptr)
 					{
-						double l2_loss = kernel_loss_l2(getPointer<double>(weightMem), getScalarValue<double>(coefficient),
-								getScalarValue<double>(offset), elements);
-						setScalarValue(loss, l2_loss);
+						double l2_loss = kernel_loss_l2(reference::getPointer<double>(weightMem), reference::getScalarValue<double>(coefficient),
+								reference::getScalarValue<double>(offset), elements);
+						reference::setScalarValue(loss, l2_loss);
 					}
 					break;
 				}

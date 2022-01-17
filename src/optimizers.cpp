@@ -53,8 +53,8 @@ namespace
 		}
 	}
 
-	avStatus_t sgd_helper(const OptimizerDescriptor &optimizer, const TensorDescriptor &weightDesc, MemoryDescriptor &weight,
-			const MemoryDescriptor &update, MemoryDescriptor &workspace)
+	avStatus_t sgd_helper(const reference::OptimizerDescriptor &optimizer, const reference::TensorDescriptor &weightDesc,
+			reference::MemoryDescriptor &weight, const reference::MemoryDescriptor &update, reference::MemoryDescriptor &workspace)
 	{
 		const avSize_t elements = weightDesc.volume();
 		bool use_momentum = optimizer.flags[0];
@@ -83,12 +83,12 @@ namespace
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
-	avStatus_t adam_helper(const OptimizerDescriptor &optimizer, const TensorDescriptor &wDesc, MemoryDescriptor &weight,
-			const MemoryDescriptor &update, MemoryDescriptor &workspace)
+	avStatus_t adam_helper(const reference::OptimizerDescriptor &optimizer, const reference::TensorDescriptor &wDesc,
+			reference::MemoryDescriptor &weight, const reference::MemoryDescriptor &update, reference::MemoryDescriptor &workspace)
 	{
 		const avSize_t elements = wDesc.volume();
 
-		if (workspace.size() < 2 * elements * dataTypeSize(wDesc.dtype()))
+		if (workspace.size() < 2 * elements * reference::dataTypeSize(wDesc.dtype()))
 			return AVOCADO_STATUS_INTERNAL_ERROR;
 		switch (wDesc.dtype())
 		{
@@ -124,12 +124,14 @@ namespace avocado
 		avStatus_t refOptimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const avTensorDescriptor_t wDesc,
 				avMemoryDescriptor_t wMem, const avTensorDescriptor_t dwDesc, const avMemoryDescriptor_t dwMem, avMemoryDescriptor_t workspace)
 		{
-			switch (getOptimizer(config).type)
+			switch (reference::getOptimizer(config).type)
 			{
 				case AVOCADO_OPTIMIZER_SGD:
-					return sgd_helper(getOptimizer(config), getTensor(wDesc), getMemory(wMem), getMemory(dwMem), getMemory(workspace));
+					return sgd_helper(reference::getOptimizer(config), reference::getTensor(wDesc), reference::getMemory(wMem),
+							reference::getMemory(dwMem), reference::getMemory(workspace));
 				case AVOCADO_OPTIMIZER_ADAM:
-					return adam_helper(getOptimizer(config), getTensor(wDesc), getMemory(wMem), getMemory(dwMem), getMemory(workspace));
+					return adam_helper(reference::getOptimizer(config), reference::getTensor(wDesc), reference::getMemory(wMem),
+							reference::getMemory(dwMem), reference::getMemory(workspace));
 				default:
 					return AVOCADO_STATUS_BAD_PARAM;
 			}

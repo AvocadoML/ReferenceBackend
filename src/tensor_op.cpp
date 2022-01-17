@@ -33,14 +33,15 @@ namespace
 	void concat_helper(const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, const avTensorDescriptor_t aDesc[],
 			const avMemoryDescriptor_t aMem[], int nbTensors)
 	{
-		const avSize_t first_dim = getTensor(cDesc).volumeWithoutLastDim();
-		const avSize_t dst_last_dim = getTensor(cDesc).lastDim();
+		const avSize_t first_dim = reference::getTensor(cDesc).volumeWithoutLastDim();
+		const avSize_t dst_last_dim = reference::getTensor(cDesc).lastDim();
 
 		avSize_t last_dim_offset = 0;
 		for (int i = 0; i < nbTensors; i++)
 		{
-			const avSize_t src_last_dim = getTensor(aDesc[i]).lastDim();
-			kernel_concat_tensors(getPointer<T>(cMem), getPointer<T>(aMem[i]), first_dim, src_last_dim, dst_last_dim, last_dim_offset);
+			const avSize_t src_last_dim = reference::getTensor(aDesc[i]).lastDim();
+			kernel_concat_tensors(reference::getPointer<T>(cMem), reference::getPointer<T>(aMem[i]), first_dim, src_last_dim, dst_last_dim,
+					last_dim_offset);
 			last_dim_offset += src_last_dim;
 		}
 	}
@@ -56,20 +57,21 @@ namespace
 	void split_helper(const avTensorDescriptor_t cDesc[], avMemoryDescriptor_t cMem[], const avTensorDescriptor_t aDesc,
 			const avMemoryDescriptor_t aMem, int nbTensors)
 	{
-		const avSize_t first_dim = getTensor(aDesc).volumeWithoutLastDim();
-		const avSize_t src_last_dim = getTensor(aDesc).lastDim();
+		const avSize_t first_dim = reference::getTensor(aDesc).volumeWithoutLastDim();
+		const avSize_t src_last_dim = reference::getTensor(aDesc).lastDim();
 
 		avSize_t last_dim_offset = 0;
 		for (int i = 0; i < nbTensors; i++)
 		{
-			const avSize_t dst_last_dim = getTensor(cDesc[i]).lastDim();
-			kernel_split_tensors(getPointer<T>(cMem[i]), getPointer<T>(aMem), first_dim, src_last_dim, dst_last_dim, last_dim_offset);
+			const avSize_t dst_last_dim = reference::getTensor(cDesc[i]).lastDim();
+			kernel_split_tensors(reference::getPointer<T>(cMem[i]), reference::getPointer<T>(aMem), first_dim, src_last_dim, dst_last_dim,
+					last_dim_offset);
 			last_dim_offset += dst_last_dim;
 		}
 	}
 
 	template<typename T>
-	void kernel_transpose(T *dst, const T *src, const TensorDescriptor &src_shape, const int *ordering)
+	void kernel_transpose(T *dst, const T *src, const reference::TensorDescriptor &src_shape, const int *ordering)
 	{
 		const int src_volume = src_shape.volume();
 		const int dimension = src_shape.nbDims();
@@ -108,13 +110,13 @@ namespace
 	template<typename T>
 	void kernel_add_scalar_to_tensor(T *dst, const void *scalar, avSize_t elements) noexcept
 	{
-		const T value = getScalarValue<T>(scalar);
+		const T value = reference::getScalarValue<T>(scalar);
 		for (avSize_t i = 0; i < elements; i++)
 			dst[i] += value;
 	}
 
 	template<typename T, typename U, typename V>
-	void kernel_add_bias(T *dst, U alpha3, U alpha1, const V *src1, U alpha2, const U *src2, U beta, BroadcastedDimensions dims,
+	void kernel_add_bias(T *dst, U alpha3, U alpha1, const V *src1, U alpha2, const U *src2, U beta, reference::BroadcastedDimensions dims,
 			avActivationType_t type) noexcept
 	{
 		if (beta == zero<U>())
@@ -138,7 +140,7 @@ namespace avocado
 		avStatus_t refConcatTensors(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
 				const avTensorDescriptor_t aDesc[], const avMemoryDescriptor_t aMem[], int nbTensors)
 		{
-			switch (dataTypeSize(getTensor(cDesc).dtype()))
+			switch (reference::dataTypeSize(reference::getTensor(cDesc).dtype()))
 			{
 				case 1:
 					concat_helper<int8_t>(cDesc, cMem, aDesc, aMem, nbTensors);
@@ -163,7 +165,7 @@ namespace avocado
 		avStatus_t refSplitTensors(avContextDescriptor_t context, const avTensorDescriptor_t cDesc[], avMemoryDescriptor_t cMem[],
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, int nbTensors)
 		{
-			switch (dataTypeSize(getTensor(aDesc).dtype()))
+			switch (reference::dataTypeSize(reference::getTensor(aDesc).dtype()))
 			{
 				case 1:
 					split_helper<int8_t>(cDesc, cMem, aDesc, aMem, nbTensors);
@@ -188,63 +190,70 @@ namespace avocado
 		avStatus_t refTranspose(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const int newDimOrder[])
 		{
-			switch (dataTypeSize(getTensor(aDesc).dtype()))
+			switch (reference::dataTypeSize(reference::getTensor(aDesc).dtype()))
 			{
 				case 1:
-					kernel_transpose<int8_t>(getPointer<int8_t>(cMem), getPointer<int8_t>(aMem), getTensor(aDesc), newDimOrder);
+					kernel_transpose<int8_t>(reference::getPointer<int8_t>(cMem), reference::getPointer<int8_t>(aMem), reference::getTensor(aDesc),
+							newDimOrder);
 					break;
 				case 2:
-					kernel_transpose<int16_t>(getPointer<int16_t>(cMem), getPointer<int16_t>(aMem), getTensor(aDesc), newDimOrder);
+					kernel_transpose<int16_t>(reference::getPointer<int16_t>(cMem), reference::getPointer<int16_t>(aMem), reference::getTensor(aDesc),
+							newDimOrder);
 					break;
 				case 4:
-					kernel_transpose<int32_t>(getPointer<int32_t>(cMem), getPointer<int32_t>(aMem), getTensor(aDesc), newDimOrder);
+					kernel_transpose<int32_t>(reference::getPointer<int32_t>(cMem), reference::getPointer<int32_t>(aMem), reference::getTensor(aDesc),
+							newDimOrder);
 					break;
 				case 8:
-					kernel_transpose<int64_t>(getPointer<int64_t>(cMem), getPointer<int64_t>(aMem), getTensor(aDesc), newDimOrder);
+					kernel_transpose<int64_t>(reference::getPointer<int64_t>(cMem), reference::getPointer<int64_t>(aMem), reference::getTensor(aDesc),
+							newDimOrder);
 					break;
 				case 16:
-					kernel_transpose<int4>(getPointer<int4>(cMem), getPointer<int4>(aMem), getTensor(aDesc), newDimOrder);
+					kernel_transpose<int4>(reference::getPointer<int4>(cMem), reference::getPointer<int4>(aMem), reference::getTensor(aDesc),
+							newDimOrder);
 					break;
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
 		avStatus_t refScaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, const void *alpha)
 		{
-			const avSize_t elements = getTensor(cDesc).volume();
-			switch (getTensor(cDesc).dtype())
+			const avSize_t elements = reference::getTensor(cDesc).volume();
+			switch (reference::getTensor(cDesc).dtype())
 			{
 				case AVOCADO_DTYPE_UINT8:
-					kernel_scale_tensor(getPointer<uint8_t>(cMem), getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<uint8_t>(cMem), reference::getAlphaValue(alpha), elements);
 					break;
 				case AVOCADO_DTYPE_INT8:
-					kernel_scale_tensor(getPointer<int8_t>(cMem), getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<int8_t>(cMem), reference::getAlphaValue(alpha), elements);
 					break;
 				case AVOCADO_DTYPE_INT16:
-					kernel_scale_tensor(getPointer<int16_t>(cMem), getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<int16_t>(cMem), reference::getAlphaValue(alpha), elements);
 					break;
 				case AVOCADO_DTYPE_INT32:
-					kernel_scale_tensor(getPointer<int32_t>(cMem), getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<int32_t>(cMem), reference::getAlphaValue(alpha), elements);
 					break;
 				case AVOCADO_DTYPE_INT64:
-					kernel_scale_tensor(getPointer<int64_t>(cMem), getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<int64_t>(cMem), reference::getAlphaValue(alpha), elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT16:
-					kernel_scale_tensor(getPointer<float16>(cMem), getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<float16>(cMem), reference::getAlphaValue(alpha), elements);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_scale_tensor(getPointer<bfloat16>(cMem), getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<bfloat16>(cMem), reference::getAlphaValue(alpha), elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					kernel_scale_tensor(getPointer<float>(cMem), getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<float>(cMem), reference::getAlphaValue(alpha), elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_scale_tensor(getPointer<double>(cMem), getAlphaValue<double>(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<double>(cMem), reference::getAlphaValue<double>(alpha), elements);
 					break;
 				case AVOCADO_DTYPE_COMPLEX32:
-					kernel_scale_tensor(getPointer<std::complex<float>>(cMem), getAlphaValue<std::complex<float>>(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<std::complex<float>>(cMem), reference::getAlphaValue<std::complex<float>>(alpha),
+							elements);
 					break;
 				case AVOCADO_DTYPE_COMPLEX64:
-					kernel_scale_tensor(getPointer<std::complex<double>>(cMem), getAlphaValue<std::complex<double>>(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<std::complex<double>>(cMem), reference::getAlphaValue<std::complex<double>>(alpha),
+							elements);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
@@ -254,41 +263,41 @@ namespace avocado
 		avStatus_t refAddScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
 				const void *scalar)
 		{
-			const avSize_t elements = getTensor(cDesc).volume();
-			switch (getTensor(cDesc).dtype())
+			const avSize_t elements = reference::getTensor(cDesc).volume();
+			switch (reference::getTensor(cDesc).dtype())
 			{
 				case AVOCADO_DTYPE_UINT8:
-					kernel_add_scalar_to_tensor(getPointer<uint8_t>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<uint8_t>(cMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_INT8:
-					kernel_add_scalar_to_tensor(getPointer<int8_t>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<int8_t>(cMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_INT16:
-					kernel_add_scalar_to_tensor(getPointer<int16_t>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<int16_t>(cMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_INT32:
-					kernel_add_scalar_to_tensor(getPointer<int32_t>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<int32_t>(cMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_INT64:
-					kernel_add_scalar_to_tensor(getPointer<int64_t>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<int64_t>(cMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT16:
-					kernel_add_scalar_to_tensor(getPointer<float16>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<float16>(cMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_add_scalar_to_tensor(getPointer<bfloat16>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<bfloat16>(cMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					kernel_add_scalar_to_tensor(getPointer<float>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<float>(cMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_add_scalar_to_tensor(getPointer<double>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<double>(cMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_COMPLEX32:
-					kernel_add_scalar_to_tensor(getPointer<std::complex<float>>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<std::complex<float>>(cMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_COMPLEX64:
-					kernel_add_scalar_to_tensor(getPointer<std::complex<double>>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<std::complex<double>>(cMem), scalar, elements);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
@@ -299,20 +308,22 @@ namespace avocado
 				const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, avActivationType_t activation)
 		{
-			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(cDesc), getTensor(bDesc));
-			switch (getTensor(cDesc).dtype())
+			reference::BroadcastedDimensions dimensions = getBroadcastDimensions(reference::getTensor(cDesc), reference::getTensor(bDesc));
+			switch (reference::getTensor(cDesc).dtype())
 			{
 				case AVOCADO_DTYPE_INT8:
 				{
-					switch (getTensor(aDesc).dtype())
+					switch (reference::getTensor(aDesc).dtype())
 					{
 						case AVOCADO_DTYPE_INT8:
-							kernel_add_bias(getPointer<int8_t>(cMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<int8_t>(aMem),
-									getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta), dimensions, activation);
+							kernel_add_bias(reference::getPointer<int8_t>(cMem), reference::getAlphaValue(alpha3), reference::getAlphaValue(alpha1),
+									reference::getPointer<int8_t>(aMem), reference::getAlphaValue(alpha2), reference::getPointer<float>(bMem),
+									reference::getBetaValue(beta), dimensions, activation);
 							break;
 						case AVOCADO_DTYPE_INT32:
-							kernel_add_bias(getPointer<int8_t>(cMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<int32_t>(aMem),
-									getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta), dimensions, activation);
+							kernel_add_bias(reference::getPointer<int8_t>(cMem), reference::getAlphaValue(alpha3), reference::getAlphaValue(alpha1),
+									reference::getPointer<int32_t>(aMem), reference::getAlphaValue(alpha2), reference::getPointer<float>(bMem),
+									reference::getBetaValue(beta), dimensions, activation);
 							break;
 						default:
 							return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
@@ -320,20 +331,24 @@ namespace avocado
 					break;
 				}
 				case AVOCADO_DTYPE_FLOAT16:
-					kernel_add_bias(getPointer<float16>(cMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<float16>(aMem),
-							getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta), dimensions, activation);
+					kernel_add_bias(reference::getPointer<float16>(cMem), reference::getAlphaValue(alpha3), reference::getAlphaValue(alpha1),
+							reference::getPointer<float16>(aMem), reference::getAlphaValue(alpha2), reference::getPointer<float>(bMem),
+							reference::getBetaValue(beta), dimensions, activation);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_add_bias(getPointer<bfloat16>(cMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<bfloat16>(aMem),
-							getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta), dimensions, activation);
+					kernel_add_bias(reference::getPointer<bfloat16>(cMem), reference::getAlphaValue(alpha3), reference::getAlphaValue(alpha1),
+							reference::getPointer<bfloat16>(aMem), reference::getAlphaValue(alpha2), reference::getPointer<float>(bMem),
+							reference::getBetaValue(beta), dimensions, activation);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					kernel_add_bias(getPointer<float>(cMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<float>(aMem),
-							getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta), dimensions, activation);
+					kernel_add_bias(reference::getPointer<float>(cMem), reference::getAlphaValue(alpha3), reference::getAlphaValue(alpha1),
+							reference::getPointer<float>(aMem), reference::getAlphaValue(alpha2), reference::getPointer<float>(bMem),
+							reference::getBetaValue(beta), dimensions, activation);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_add_bias(getPointer<double>(cMem), getAlphaValue<double>(alpha3), getAlphaValue<double>(alpha1), getPointer<double>(aMem),
-							getAlphaValue<double>(alpha2), getPointer<double>(bMem), getBetaValue<double>(beta), dimensions, activation);
+					kernel_add_bias(reference::getPointer<double>(cMem), reference::getAlphaValue<double>(alpha3),
+							reference::getAlphaValue<double>(alpha1), reference::getPointer<double>(aMem), reference::getAlphaValue<double>(alpha2),
+							reference::getPointer<double>(bMem), reference::getBetaValue<double>(beta), dimensions, activation);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;

@@ -61,45 +61,45 @@ namespace avocado
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const avSize_t M = getTensor(cDesc).firstDim();
-			const avSize_t N = getTensor(cDesc).lastDim();
-			const avSize_t K = (aOp == AVOCADO_GEMM_OPERATION_N) ? getTensor(aDesc).lastDim() : getTensor(aDesc).firstDim();
+			const avSize_t M = reference::getTensor(cDesc).firstDim();
+			const avSize_t N = reference::getTensor(cDesc).lastDim();
+			const avSize_t K = (aOp == AVOCADO_GEMM_OPERATION_N) ? reference::getTensor(aDesc).lastDim() : reference::getTensor(aDesc).firstDim();
 
-			switch (getTensor(cDesc).dtype())
+			switch (reference::getTensor(cDesc).dtype())
 			{
 				case AVOCADO_DTYPE_INT32:
 				{
-					if (getTensor(aDesc).dtype() != AVOCADO_DTYPE_INT8)
+					if (reference::getTensor(aDesc).dtype() != AVOCADO_DTYPE_INT8)
 						return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-					kernel_gemm(aOp, bOp, getPointer<int32_t>(cMem), getPointer<int8_t>(aMem), getPointer<int8_t>(bMem),
-							getAlphaValue<int32_t>(alpha), getBetaValue<int32_t>(beta), M, N, K);
+					kernel_gemm(aOp, bOp, reference::getPointer<int32_t>(cMem), reference::getPointer<int8_t>(aMem), reference::getPointer<int8_t>(bMem),
+							reference::getAlphaValue<int32_t>(alpha), reference::getBetaValue<int32_t>(beta), M, N, K);
 					break;
 				}
 				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_gemm(aOp, bOp, getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getPointer<bfloat16>(bMem), getAlphaValue(alpha),
-							getBetaValue(beta), M, N, K);
+					kernel_gemm(aOp, bOp, reference::getPointer<bfloat16>(cMem), reference::getPointer<bfloat16>(aMem), reference::getPointer<bfloat16>(bMem), reference::getAlphaValue(alpha),
+							reference::getBetaValue(beta), M, N, K);
 					break;
 				case AVOCADO_DTYPE_FLOAT16:
-					kernel_gemm(aOp, bOp, getPointer<float16>(cMem), getPointer<float16>(aMem), getPointer<float16>(bMem), getAlphaValue(alpha),
-							getBetaValue(beta), M, N, K);
+					kernel_gemm(aOp, bOp, reference::getPointer<float16>(cMem), reference::getPointer<float16>(aMem), reference::getPointer<float16>(bMem), reference::getAlphaValue(alpha),
+							reference::getBetaValue(beta), M, N, K);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					kernel_gemm(aOp, bOp, getPointer<float>(cMem), getPointer<float>(aMem), getPointer<float>(bMem), getAlphaValue(alpha),
-							getBetaValue(beta), M, N, K);
+					kernel_gemm(aOp, bOp, reference::getPointer<float>(cMem), reference::getPointer<float>(aMem), reference::getPointer<float>(bMem), reference::getAlphaValue(alpha),
+							reference::getBetaValue(beta), M, N, K);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_gemm(aOp, bOp, getPointer<double>(cMem), getPointer<double>(aMem), getPointer<double>(bMem), getAlphaValue<double>(alpha),
-							getBetaValue<double>(beta), M, N, K);
+					kernel_gemm(aOp, bOp, reference::getPointer<double>(cMem), reference::getPointer<double>(aMem), reference::getPointer<double>(bMem), reference::getAlphaValue<double>(alpha),
+							reference::getBetaValue<double>(beta), M, N, K);
 					break;
 				case AVOCADO_DTYPE_COMPLEX32:
-					kernel_gemm(aOp, bOp, getPointer<std::complex<float>>(cMem), getPointer<std::complex<float>>(aMem),
-							getPointer<std::complex<float>>(bMem), getAlphaValue<std::complex<float>>(alpha), getBetaValue<std::complex<float>>(beta),
+					kernel_gemm(aOp, bOp, reference::getPointer<std::complex<float>>(cMem), reference::getPointer<std::complex<float>>(aMem),
+							reference::getPointer<std::complex<float>>(bMem), reference::getAlphaValue<std::complex<float>>(alpha), reference::getBetaValue<std::complex<float>>(beta),
 							M, N, K);
 					break;
 				case AVOCADO_DTYPE_COMPLEX64:
-					kernel_gemm(aOp, bOp, getPointer<std::complex<double>>(cMem), getPointer<std::complex<double>>(aMem),
-							getPointer<std::complex<double>>(bMem), getAlphaValue<std::complex<double>>(alpha),
-							getBetaValue<std::complex<double>>(beta), M, N, K);
+					kernel_gemm(aOp, bOp, reference::getPointer<std::complex<double>>(cMem), reference::getPointer<std::complex<double>>(aMem),
+							reference::getPointer<std::complex<double>>(bMem), reference::getAlphaValue<std::complex<double>>(alpha),
+							reference::getBetaValue<std::complex<double>>(beta), M, N, K);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
@@ -110,51 +110,51 @@ namespace avocado
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const avSize_t batch = getTensor(cDesc).dimension(0);
-			const avSize_t M = getTensor(cDesc).dimension(1);
-			const avSize_t N = getTensor(cDesc).dimension(2);
-			const avSize_t K = (aOp == AVOCADO_GEMM_OPERATION_N) ? getTensor(aDesc).dimension(2) : getTensor(aDesc).dimension(1);
+			const avSize_t batch = reference::getTensor(cDesc).dimension(0);
+			const avSize_t M = reference::getTensor(cDesc).dimension(1);
+			const avSize_t N = reference::getTensor(cDesc).dimension(2);
+			const avSize_t K = (aOp == AVOCADO_GEMM_OPERATION_N) ? reference::getTensor(aDesc).dimension(2) : reference::getTensor(aDesc).dimension(1);
 
 			for (avSize_t b = 0; b < batch; b++)
 			{
 				avSize_t c_offset = b * M * N;
 				avSize_t a_offset = b * M * K;
 				avSize_t b_offset = b * N * K;
-				switch (getTensor(cDesc).dtype())
+				switch (reference::getTensor(cDesc).dtype())
 				{
 					case AVOCADO_DTYPE_INT32:
 					{
-						if (getTensor(aDesc).dtype() != AVOCADO_DTYPE_INT8)
+						if (reference::getTensor(aDesc).dtype() != AVOCADO_DTYPE_INT8)
 							return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-						kernel_gemm(aOp, bOp, getPointer<int32_t>(cMem) + c_offset, getPointer<int8_t>(aMem) + a_offset,
-								getPointer<int8_t>(bMem) + b_offset, getAlphaValue<int32_t>(alpha), getBetaValue<int32_t>(beta), M, N, K);
+						kernel_gemm(aOp, bOp, reference::getPointer<int32_t>(cMem) + c_offset, reference::getPointer<int8_t>(aMem) + a_offset,
+								reference::getPointer<int8_t>(bMem) + b_offset, reference::getAlphaValue<int32_t>(alpha), reference::getBetaValue<int32_t>(beta), M, N, K);
 						break;
 					}
 					case AVOCADO_DTYPE_BFLOAT16:
-						kernel_gemm(aOp, bOp, getPointer<bfloat16>(cMem) + c_offset, getPointer<bfloat16>(aMem) + a_offset,
-								getPointer<bfloat16>(bMem) + b_offset, getAlphaValue(alpha), getBetaValue(beta), M, N, K);
+						kernel_gemm(aOp, bOp, reference::getPointer<bfloat16>(cMem) + c_offset, reference::getPointer<bfloat16>(aMem) + a_offset,
+								reference::getPointer<bfloat16>(bMem) + b_offset, reference::getAlphaValue(alpha), reference::getBetaValue(beta), M, N, K);
 						break;
 					case AVOCADO_DTYPE_FLOAT16:
-						kernel_gemm(aOp, bOp, getPointer<float16>(cMem) + c_offset, getPointer<float16>(aMem) + a_offset,
-								getPointer<float16>(bMem) + b_offset, getAlphaValue(alpha), getBetaValue(beta), M, N, K);
+						kernel_gemm(aOp, bOp, reference::getPointer<float16>(cMem) + c_offset, reference::getPointer<float16>(aMem) + a_offset,
+								reference::getPointer<float16>(bMem) + b_offset, reference::getAlphaValue(alpha), reference::getBetaValue(beta), M, N, K);
 						break;
 					case AVOCADO_DTYPE_FLOAT32:
-						kernel_gemm(aOp, bOp, getPointer<float>(cMem) + c_offset, getPointer<float>(aMem) + a_offset,
-								getPointer<float>(bMem) + b_offset, getAlphaValue(alpha), getBetaValue(beta), M, N, K);
+						kernel_gemm(aOp, bOp, reference::getPointer<float>(cMem) + c_offset, reference::getPointer<float>(aMem) + a_offset,
+								reference::getPointer<float>(bMem) + b_offset, reference::getAlphaValue(alpha), reference::getBetaValue(beta), M, N, K);
 						break;
 					case AVOCADO_DTYPE_FLOAT64:
-						kernel_gemm(aOp, bOp, getPointer<double>(cMem) + c_offset, getPointer<double>(aMem) + a_offset,
-								getPointer<double>(bMem) + b_offset, getAlphaValue<double>(alpha), getBetaValue<double>(beta), M, N, K);
+						kernel_gemm(aOp, bOp, reference::getPointer<double>(cMem) + c_offset, reference::getPointer<double>(aMem) + a_offset,
+								reference::getPointer<double>(bMem) + b_offset, reference::getAlphaValue<double>(alpha), reference::getBetaValue<double>(beta), M, N, K);
 						break;
 					case AVOCADO_DTYPE_COMPLEX32:
-						kernel_gemm(aOp, bOp, getPointer<std::complex<float>>(cMem) + c_offset, getPointer<std::complex<float>>(aMem) + a_offset,
-								getPointer<std::complex<float>>(bMem) + b_offset, getAlphaValue<std::complex<float>>(alpha),
-								getBetaValue<std::complex<float>>(beta), M, N, K);
+						kernel_gemm(aOp, bOp, reference::getPointer<std::complex<float>>(cMem) + c_offset, reference::getPointer<std::complex<float>>(aMem) + a_offset,
+								reference::getPointer<std::complex<float>>(bMem) + b_offset, reference::getAlphaValue<std::complex<float>>(alpha),
+								reference::getBetaValue<std::complex<float>>(beta), M, N, K);
 						break;
 					case AVOCADO_DTYPE_COMPLEX64:
-						kernel_gemm(aOp, bOp, getPointer<std::complex<double>>(cMem) + c_offset, getPointer<std::complex<double>>(aMem) + a_offset,
-								getPointer<std::complex<double>>(bMem) + b_offset, getAlphaValue<std::complex<double>>(alpha),
-								getBetaValue<std::complex<double>>(beta), M, N, K);
+						kernel_gemm(aOp, bOp, reference::getPointer<std::complex<double>>(cMem) + c_offset, reference::getPointer<std::complex<double>>(aMem) + a_offset,
+								reference::getPointer<std::complex<double>>(bMem) + b_offset, reference::getAlphaValue<std::complex<double>>(alpha),
+								reference::getBetaValue<std::complex<double>>(beta), M, N, K);
 						break;
 					default:
 						return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;

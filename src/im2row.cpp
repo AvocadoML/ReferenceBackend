@@ -25,8 +25,8 @@ namespace
 	};
 
 	template<typename T>
-	void kernel_im2row_1d(const ConvolutionDescriptor &config, const TensorDescriptor &rowDesc, T *rowMem, const TensorDescriptor &srcDesc,
-			const T *srcMem, const TensorDescriptor &filterDesc)
+	void kernel_im2row_1d(const reference::ConvolutionDescriptor &config, const reference::TensorDescriptor &rowDesc, T *rowMem,
+			const reference::TensorDescriptor &srcDesc, const T *srcMem, const reference::TensorDescriptor &filterDesc)
 	{
 		const int batch_size = srcDesc.dimension(0);
 		const int input_height = srcDesc.dimension(1);
@@ -38,9 +38,9 @@ namespace
 		const int stride_h = config.stride[0];
 		const int dilation_h = config.dilation[0];
 
-		const T padding_value = getScalarValue<T>(config.padding_value.data());
+		const T padding_value = reference::getScalarValue<T>(config.padding_value.data());
 
-		TensorDescriptor output_shape = getConvolutionOutputShape(config, srcDesc, filterDesc);
+		reference::TensorDescriptor output_shape = reference::getConvolutionOutputShape(config, srcDesc, filterDesc);
 
 		int tile_idx = 0;
 		for (int b = 0; b < batch_size; b++)
@@ -69,8 +69,8 @@ namespace
 	}
 
 	template<typename T>
-	void kernel_im2row_2d(const ConvolutionDescriptor &config, const TensorDescriptor &rowDesc, T *rowMem, const TensorDescriptor &srcDesc,
-			const T *srcMem, const TensorDescriptor &filterDesc)
+	void kernel_im2row_2d(const reference::ConvolutionDescriptor &config, const reference::TensorDescriptor &rowDesc, T *rowMem,
+			const reference::TensorDescriptor &srcDesc, const T *srcMem, const reference::TensorDescriptor &filterDesc)
 	{
 		const int batch_size = srcDesc.dimension(0);
 		const int input_height = srcDesc.dimension(1);
@@ -89,9 +89,9 @@ namespace
 		const int dilation_h = config.dilation[0];
 		const int dilation_w = config.dilation[1];
 
-		const T padding_value = getScalarValue<T>(config.padding_value.data());
+		const T padding_value = reference::getScalarValue<T>(config.padding_value.data());
 
-		TensorDescriptor output_shape = getConvolutionOutputShape(config, srcDesc, filterDesc);
+		reference::TensorDescriptor output_shape = reference::getConvolutionOutputShape(config, srcDesc, filterDesc);
 
 		int tile_idx = 0;
 		for (int b = 0; b < batch_size; b++)
@@ -131,15 +131,15 @@ namespace
 	avStatus_t launcher_im2row(const avConvolutionDescriptor_t config, const avTensorDescriptor_t filterDesc, const avTensorDescriptor_t srcDesc,
 			const avMemoryDescriptor_t srcMem, const avTensorDescriptor_t rowDesc, avMemoryDescriptor_t rowMem)
 	{
-		switch (getTensor(filterDesc).nbDims())
+		switch (reference::getTensor(filterDesc).nbDims())
 		{
 			case 3: // 1D convolution
-				kernel_im2row_1d(getConvolution(config), getTensor(rowDesc), getPointer<T>(rowMem), getTensor(srcDesc), getPointer<T>(srcMem),
-						getTensor(filterDesc));
+				kernel_im2row_1d(reference::getConvolution(config), reference::getTensor(rowDesc), reference::getPointer<T>(rowMem),
+						reference::getTensor(srcDesc), reference::getPointer<T>(srcMem), reference::getTensor(filterDesc));
 				return AVOCADO_STATUS_SUCCESS;
 			case 4: // 2D convolution
-				kernel_im2row_2d(getConvolution(config), getTensor(rowDesc), getPointer<T>(rowMem), getTensor(srcDesc), getPointer<T>(srcMem),
-						getTensor(filterDesc));
+				kernel_im2row_2d(reference::getConvolution(config), reference::getTensor(rowDesc), reference::getPointer<T>(rowMem),
+						reference::getTensor(srcDesc), reference::getPointer<T>(srcMem), reference::getTensor(filterDesc));
 				return AVOCADO_STATUS_SUCCESS;
 			case 5: // 3D convolution
 				return AVOCADO_STATUS_NOT_SUPPORTED; // TODO
@@ -157,7 +157,7 @@ namespace avocado
 				const avTensorDescriptor_t srcDesc, const avMemoryDescriptor_t srcMem, const avTensorDescriptor_t rowDesc,
 				avMemoryDescriptor_t rowMem)
 		{
-			switch (dataTypeSize(getTensor(srcDesc).dtype()))
+			switch (reference::dataTypeSize(reference::getTensor(srcDesc).dtype()))
 			{
 				case 1:
 					return launcher_im2row<int8_t>(config, rowDesc, rowMem, srcDesc, srcMem, filterDesc);

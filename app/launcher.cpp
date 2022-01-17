@@ -24,8 +24,8 @@ class TensorWrapper
 		{
 			refCreateTensorDescriptor(&(this->desc));
 			refSetTensorDescriptor(desc, dtype, dimensions.size(), dimensions.begin());
-			refCreateMemoryDescriptor(&(this->mem), getTensor(desc).sizeInBytes());
-			refSetMemory(0, mem, 0, getTensor(desc).sizeInBytes(), nullptr, 0);
+			refCreateMemoryDescriptor(&(this->mem), reference::getTensor(desc).sizeInBytes());
+			refSetMemory(0, mem, 0, reference::getTensor(desc).sizeInBytes(), nullptr, 0);
 		}
 		~TensorWrapper()
 		{
@@ -35,17 +35,17 @@ class TensorWrapper
 		template<typename T>
 		void fill(T value)
 		{
-			refSetMemory(0, desc, 0, getTensor(desc).sizeInBytes(), &value, sizeof(value));
+			refSetMemory(0, desc, 0, reference::getTensor(desc).sizeInBytes(), &value, sizeof(value));
 		}
 		template<typename T>
 		T& at(std::initializer_list<int> idx)
 		{
-			return *(reinterpret_cast<T*>(refGetMemoryPointer(desc)) + getTensor(desc).getIndex(idx));
+			return *(reinterpret_cast<T*>(refGetMemoryPointer(desc)) + reference::getTensor(desc).getIndex(idx));
 		}
 		template<typename T>
 		T at(std::initializer_list<int> idx) const
 		{
-			return *(reinterpret_cast<const T*>(refGetMemoryPointer(desc)) + getTensor(desc).getIndex(idx));
+			return *(reinterpret_cast<const T*>(refGetMemoryPointer(desc)) + reference::getTensor(desc).getIndex(idx));
 		}
 		avTensorDescriptor_t getDesc() const noexcept
 		{
@@ -78,8 +78,8 @@ class ContextWrapper
 
 int main(int argc, char *argv[])
 {
-	TensorWrapper tensor( { 11, 12, 12, 9 }, typeOf<float>());
-	TensorWrapper matrices( { 36, 9 * 11, 9 }, typeOf<float>());
+	TensorWrapper tensor( { 11, 12, 12, 9 }, reference::typeOf<float>());
+	TensorWrapper matrices( { 36, 9 * 11, 9 }, reference::typeOf<float>());
 	matrices.fill(1.0f);
 
 	ContextWrapper cw;

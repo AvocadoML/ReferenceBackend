@@ -8,7 +8,7 @@
 #ifndef REFERENCEBACKEND_REFERENCE_BACKEND_H_
 #define REFERENCEBACKEND_REFERENCE_BACKEND_H_
 
-#include <avocado/backend/backend_defs.h>
+#include "backend_defs.h"
 
 namespace avocado
 {
