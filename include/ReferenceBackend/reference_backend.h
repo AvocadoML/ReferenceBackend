@@ -209,6 +209,9 @@ namespace avocado
 		 * \param[in] elements
 		 *
 		 */
+		DLL_PUBLIC avStatus_t refChangeTypeHost(avContextDescriptor_t context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
+				avSize_t elements);
+
 		DLL_PUBLIC avStatus_t refChangeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType,
 				const avMemoryDescriptor_t src, avDataType_t srcType, avSize_t elements);
 

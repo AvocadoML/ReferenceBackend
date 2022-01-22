@@ -199,48 +199,54 @@ namespace avocado
 {
 	namespace backend
 	{
-		avStatus_t refChangeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType, const avMemoryDescriptor_t src,
-				avDataType_t srcType, avSize_t elements)
+		avStatus_t refChangeTypeHost(avContextDescriptor_t context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
+				avSize_t elements)
 		{
 			switch (dstType)
 			{
 				case AVOCADO_DTYPE_UINT8:
-					convert_helper(reference::getPointer<uint8_t>(dst), reference::getPointer(src), elements, srcType);
+					convert_helper(reinterpret_cast<uint8_t*>(dst), src, elements, srcType);
 					break;
 				case AVOCADO_DTYPE_INT8:
-					convert_helper(reference::getPointer<int8_t>(dst), reference::getPointer(src), elements, srcType);
+					convert_helper(reinterpret_cast<int8_t*>(dst), src, elements, srcType);
 					break;
 				case AVOCADO_DTYPE_INT16:
-					convert_helper(reference::getPointer<int16_t>(dst), reference::getPointer(src), elements, srcType);
+					convert_helper(reinterpret_cast<int16_t*>(dst), src, elements, srcType);
 					break;
 				case AVOCADO_DTYPE_INT32:
-					convert_helper(reference::getPointer<int32_t>(dst), reference::getPointer(src), elements, srcType);
+					convert_helper(reinterpret_cast<int32_t*>(dst), src, elements, srcType);
 					break;
 				case AVOCADO_DTYPE_INT64:
-					convert_helper(reference::getPointer<int64_t>(dst), reference::getPointer(src), elements, srcType);
+					convert_helper(reinterpret_cast<int64_t*>(dst), src, elements, srcType);
 					break;
 				case AVOCADO_DTYPE_FLOAT16:
-					convert_helper(reference::getPointer<float16>(dst), reference::getPointer(src), elements, srcType);
+					convert_helper(reinterpret_cast<float16*>(dst), src, elements, srcType);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					convert_helper(reference::getPointer<bfloat16>(dst), reference::getPointer(src), elements, srcType);
+					convert_helper(reinterpret_cast<bfloat16*>(dst), src, elements, srcType);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					convert_helper(reference::getPointer<float>(dst), reference::getPointer(src), elements, srcType);
+					convert_helper(reinterpret_cast<float*>(dst), src, elements, srcType);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					convert_helper(reference::getPointer<double>(dst), reference::getPointer(src), elements, srcType);
+					convert_helper(reinterpret_cast<double*>(dst), src, elements, srcType);
 					break;
 				case AVOCADO_DTYPE_COMPLEX32:
-					convert_helper(reference::getPointer<std::complex<float>>(dst), reference::getPointer(src), elements, srcType);
+					convert_helper(reinterpret_cast<std::complex<float>*>(dst), src, elements, srcType);
 					break;
 				case AVOCADO_DTYPE_COMPLEX64:
-					convert_helper(reference::getPointer<std::complex<double>>(dst), reference::getPointer(src), elements, srcType);
+					convert_helper(reinterpret_cast<std::complex<double>*>(dst), src, elements, srcType);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 			}
 			return AVOCADO_STATUS_SUCCESS;
+		}
+
+		avStatus_t refChangeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType, const avMemoryDescriptor_t src,
+				avDataType_t srcType, avSize_t elements)
+		{
+			return refChangeTypeHost(context, reference::getPointer<uint8_t>(dst), dstType, reference::getPointer(src), srcType, elements);
 		}
 	} /* namespace backend */
 } /* namespace avocado */
