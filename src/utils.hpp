@@ -255,227 +255,227 @@ namespace avocado
 
 		inline float mod(float x, float y) noexcept
 		{
-			return fmodf(x, y);
+			return std::fmod(x, y);
 		}
 		inline double mod(double x, double y) noexcept
 		{
-			return fmod(x, y);
+			return std::fmod(x, y);
 		}
 		inline float16 mod(float16 x, float16 y) noexcept
 		{
-			return float16(fmodf(static_cast<float>(x), static_cast<float>(y)));
+			return float16(std::fmod(static_cast<float>(x), static_cast<float>(y)));
 		}
 		inline bfloat16 mod(bfloat16 x, bfloat16 y) noexcept
 		{
-			return bfloat16(fmodf(static_cast<float>(x), static_cast<float>(y)));
+			return bfloat16(std::fmod(static_cast<float>(x), static_cast<float>(y)));
 		}
 
 		inline float log(float x) noexcept
 		{
-			return logf(x);
+			return std::log(x);
 		}
 		inline double log(double x) noexcept
 		{
-			return log(x);
+			return std::log(x);
 		}
 		inline float16 log(float16 x) noexcept
 		{
-			return float16(logf(static_cast<float>(x)));
+			return float16(std::log(static_cast<float>(x)));
 		}
 		inline bfloat16 log(bfloat16 x) noexcept
 		{
-			return bfloat16(logf(static_cast<float>(x)));
+			return bfloat16(std::log(static_cast<float>(x)));
 		}
 
 		inline float exp(float x) noexcept
 		{
-			return expf(x);
+			return std::exp(x);
 		}
 		inline double exp(double x) noexcept
 		{
-			return exp(x);
+			return std::exp(x);
 		}
 		inline float16 exp(float16 x) noexcept
 		{
-			return float16(expf(static_cast<float>(x)));
+			return float16(std::exp(static_cast<float>(x)));
 		}
 		inline bfloat16 exp(bfloat16 x) noexcept
 		{
-			return bfloat16(expf(static_cast<float>(x)));
+			return bfloat16(std::exp(static_cast<float>(x)));
 		}
 
 		inline float tanh(float x) noexcept
 		{
-			return tanhf(x);
+			return std::tanh(x);
 		}
 		inline double tanh(double x) noexcept
 		{
-			return tanh(x);
+			return std::tanh(x);
 		}
 		inline float16 tanh(float16 x) noexcept
 		{
-			return float16(tanhf(static_cast<float>(x)));
+			return float16(std::tanh(static_cast<float>(x)));
 		}
 		inline bfloat16 tanh(bfloat16 x) noexcept
 		{
-			return bfloat16(tanhf(static_cast<float>(x)));
+			return bfloat16(std::tanh(static_cast<float>(x)));
 		}
 
 		inline float expm1(float x) noexcept
 		{
-			return expm1f(x);
+			return std::expm1(x);
 		}
 		inline double expm1(double x) noexcept
 		{
-			return expm1(x);
+			return std::expm1(x);
 		}
 		inline float16 expm1(float16 x) noexcept
 		{
-			return float16(expm1f(static_cast<float>(x)));
+			return float16(std::expm1(static_cast<float>(x)));
 		}
 		inline bfloat16 expm1(bfloat16 x) noexcept
 		{
-			return bfloat16(expm1f(static_cast<float>(x)));
+			return bfloat16(std::expm1(static_cast<float>(x)));
 		}
 
 		inline float log1p(float x) noexcept
 		{
-			return log1pf(x);
+			return std::log1p(x);
 		}
 		inline double log1p(double x) noexcept
 		{
-			return log1p(x);
+			return std::log1p(x);
 		}
 		inline float16 log1p(float16 x) noexcept
 		{
-			return float16(log1pf(static_cast<float>(x)));
+			return float16(std::log1p(static_cast<float>(x)));
 		}
 		inline bfloat16 log1p(bfloat16 x) noexcept
 		{
-			return bfloat16(log1pf(static_cast<float>(x)));
+			return bfloat16(std::log1p(static_cast<float>(x)));
 		}
 
 		inline float abs(float x) noexcept
 		{
-			return fabsf(x);
+			return std::fabs(x);
 		}
 		inline double abs(double x) noexcept
 		{
-			return fabs(x);
+			return std::fabs(x);
 		}
 		inline float16 abs(float16 x) noexcept
 		{
-			return float16(fabsf(static_cast<float>(x)));
+			return float16(std::fabs(static_cast<float>(x)));
 		}
 		inline bfloat16 abs(bfloat16 x) noexcept
 		{
-			return bfloat16(fabsf(static_cast<float>(x)));
+			return bfloat16(std::fabs(static_cast<float>(x)));
 		}
 
 		/* trigonometric functions */
 		inline float sin(float x) noexcept
 		{
-			return sinf(x);
+			return std::sin(x);
 		}
 		inline double sin(double x) noexcept
 		{
-			return sin(x);
+			return std::sin(x);
 		}
 		inline float16 sin(float16 x) noexcept
 		{
-			return float16(sinf(static_cast<float>(x)));
+			return float16(std::sin(static_cast<float>(x)));
 		}
 		inline bfloat16 sin(bfloat16 x) noexcept
 		{
-			return bfloat16(sinf(static_cast<float>(x)));
+			return bfloat16(std::sin(static_cast<float>(x)));
 		}
 
 		inline float cos(float x) noexcept
 		{
-			return cosf(x);
+			return std::cos(x);
 		}
 		inline double cos(double x) noexcept
 		{
-			return cos(x);
+			return std::cos(x);
 		}
 		inline float16 cos(float16 x) noexcept
 		{
-			return float16(cosf(static_cast<float>(x)));
+			return float16(std::cos(static_cast<float>(x)));
 		}
 		inline bfloat16 cos(bfloat16 x) noexcept
 		{
-			return bfloat16(cosf(static_cast<float>(x)));
+			return bfloat16(std::cos(static_cast<float>(x)));
 		}
 
 		inline float tan(float x) noexcept
 		{
-			return tanf(x);
+			return std::tan(x);
 		}
 		inline double tan(double x) noexcept
 		{
-			return tan(x);
+			return std::tan(x);
 		}
 		inline float16 tan(float16 x) noexcept
 		{
-			return float16(tanf(static_cast<float>(x)));
+			return float16(std::tan(static_cast<float>(x)));
 		}
 		inline bfloat16 tan(bfloat16 x) noexcept
 		{
-			return bfloat16(tanf(static_cast<float>(x)));
+			return bfloat16(std::tan(static_cast<float>(x)));
 		}
 
 		/* arithmetic functions */
 		inline float sqrt(float x) noexcept
 		{
-			return sqrtf(x);
+			return std::sqrt(x);
 		}
 		inline double sqrt(double x) noexcept
 		{
-			return sqrt(x);
+			return std::sqrt(x);
 		}
 		inline float16 sqrt(float16 x) noexcept
 		{
-			return float16(sqrtf(static_cast<float>(x)));
+			return float16(std::sqrt(static_cast<float>(x)));
 		}
 		inline bfloat16 sqrt(bfloat16 x) noexcept
 		{
-			return bfloat16(sqrtf(static_cast<float>(x)));
+			return bfloat16(std::sqrt(static_cast<float>(x)));
 		}
 
 		/* arithmetic functions */
 		inline float ceil(float x) noexcept
 		{
-			return ceilf(x);
+			return std::ceil(x);
 		}
 		inline double ceil(double x) noexcept
 		{
-			return ceil(x);
+			return std::ceil(x);
 		}
 		inline float16 ceil(float16 x) noexcept
 		{
-			return float16(ceilf(static_cast<float>(x)));
+			return float16(std::ceil(static_cast<float>(x)));
 		}
 		inline bfloat16 ceil(bfloat16 x) noexcept
 		{
-			return bfloat16(ceilf(static_cast<float>(x)));
+			return bfloat16(std::ceil(static_cast<float>(x)));
 		}
 
 		/* arithmetic functions */
 		inline float floor(float x) noexcept
 		{
-			return floorf(x);
+			return std::floor(x);
 		}
 		inline double floor(double x) noexcept
 		{
-			return floor(x);
+			return std::floor(x);
 		}
 		inline float16 floor(float16 x) noexcept
 		{
-			return float16(floorf(static_cast<float>(x)));
+			return float16(std::floor(static_cast<float>(x)));
 		}
 		inline bfloat16 floor(bfloat16 x) noexcept
 		{
-			return bfloat16(floorf(static_cast<float>(x)));
+			return bfloat16(std::floor(static_cast<float>(x)));
 		}
 
 		template<typename T>

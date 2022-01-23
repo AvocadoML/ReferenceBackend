@@ -20,7 +20,7 @@ namespace
 	template<typename T, typename U>
 	void kernel_reduce_tensor(T *dst, const T *src, U alpha, U beta, reference::BroadcastedDimensions dims, avReduceOp_t operation) noexcept
 	{
-		std::unique_ptr<T[]> workspace = std::make_unique<T[]>(dims.last);
+		std::unique_ptr<U[]> workspace = std::make_unique<U[]>(dims.last);
 
 		// first perform initialization of workspace tensor
 		for (avSize_t j = 0; j < dims.last; j++)
@@ -32,17 +32,17 @@ namespace
 				case AVOCADO_REDUCE_NORM1:
 				case AVOCADO_REDUCE_NORM2:
 				case AVOCADO_REDUCE_AMAX:
-					workspace[j] = zero<T>();
+					workspace[j] = zero<U>();
 					break;
 				case AVOCADO_REDUCE_MUL:
 				case AVOCADO_REDUCE_MUL_NO_ZEROS:
-					workspace[j] = one<T>();
+					workspace[j] = one<U>();
 					break;
 				case AVOCADO_REDUCE_MIN:
-					workspace[j] = max_value<T>::get();
+					workspace[j] = max_value<U>::get();
 					break;
 				case AVOCADO_REDUCE_MAX:
-					workspace[j] = -max_value<T>::get();
+					workspace[j] = -max_value<U>::get();
 					break;
 			}
 		}
@@ -52,7 +52,7 @@ namespace
 		{
 			for (avSize_t j = 0; j < dims.last; j++)
 			{
-				T value = src[i * dims.last + j];
+				U value = static_cast<U>(src[i * dims.last + j]);
 				switch (operation)
 				{
 					case AVOCADO_REDUCE_ADD:
@@ -80,7 +80,7 @@ namespace
 						workspace[j] += square(value);
 						break;
 					case AVOCADO_REDUCE_MUL_NO_ZEROS:
-						if (value != zero<T>())
+						if (value != zero<U>())
 							workspace[j] *= value;
 						break;
 				}
@@ -94,11 +94,11 @@ namespace
 				break;
 			case AVOCADO_REDUCE_AVG:
 				for (avSize_t j = 0; j < dims.last; j++)
-					workspace[j] = static_cast<U>(workspace[j]) / dims.first;
+					workspace[j] = workspace[j] / static_cast<U>(dims.first);
 				break;
 			case AVOCADO_REDUCE_NORM2:
 				for (avSize_t j = 0; j < dims.last; j++)
-					workspace[j] = avocado::backend::sqrt(static_cast<U>(workspace[j]));
+					workspace[j] = avocado::backend::sqrt(workspace[j]);
 				break;
 		}
 
@@ -106,7 +106,7 @@ namespace
 			clear(dst, dims.last);
 		// now store result in dst
 		for (avSize_t j = 0; j < dims.last; j++)
-			dst[j] = alpha * static_cast<U>(workspace[j]) + beta * static_cast<U>(dst[j]);
+			dst[j] = alpha * workspace[j] + beta * static_cast<U>(dst[j]);
 	}
 }
 

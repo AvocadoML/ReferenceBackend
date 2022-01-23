@@ -216,17 +216,17 @@ namespace avocado
 		}
 		float16& float16::operator=(int i) noexcept
 		{
-			m_data = half_to_float(static_cast<float>(i));
+			m_data = float_to_half(static_cast<float>(i));
 			return *this;
 		}
 		float16& float16::operator=(float f) noexcept
 		{
-			m_data = half_to_float(f);
+			m_data = float_to_half(f);
 			return *this;
 		}
 		float16& float16::operator=(double d) noexcept
 		{
-			m_data = half_to_float(static_cast<float>(d));
+			m_data = float_to_half(static_cast<float>(d));
 			return *this;
 		}
 
@@ -393,17 +393,17 @@ namespace avocado
 		}
 		bfloat16& bfloat16::operator=(int i) noexcept
 		{
-			m_data = bfloat16_to_float(static_cast<float>(i));
+			m_data = float_to_bfloat16(static_cast<float>(i));
 			return *this;
 		}
 		bfloat16& bfloat16::operator=(float f) noexcept
 		{
-			m_data = bfloat16_to_float(f);
+			m_data = float_to_bfloat16(f);
 			return *this;
 		}
 		bfloat16& bfloat16::operator=(double d) noexcept
 		{
-			m_data = bfloat16_to_float(static_cast<float>(d));
+			m_data = float_to_bfloat16(static_cast<float>(d));
 			return *this;
 		}
 

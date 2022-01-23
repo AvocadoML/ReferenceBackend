@@ -16,7 +16,13 @@ namespace avocado
 		{
 				unsigned short m_data = 0;
 			public:
-				float16() = default;
+				float16() noexcept = default;
+				float16(const float16 &other) noexcept = default;
+				float16(float16 &&other) noexcept = default;
+				float16& operator=(const float16 &other) noexcept = default;
+				float16& operator=(float16 &&other) noexcept = default;
+				~float16() noexcept = default;
+
 				float16(unsigned short raw_binary_value) noexcept;
 				float16(int i) noexcept;
 				float16(long long i) noexcept;
@@ -73,7 +79,13 @@ namespace avocado
 		{
 				unsigned short m_data = 0;
 			public:
-				bfloat16() = default;
+				bfloat16() noexcept = default;
+				bfloat16(const bfloat16 &other) noexcept = default;
+				bfloat16(bfloat16 &&other) noexcept = default;
+				bfloat16& operator=(const bfloat16 &other) noexcept = default;
+				bfloat16& operator=(bfloat16 &&other) noexcept = default;
+				~bfloat16() noexcept = default;
+
 				bfloat16(unsigned short raw_binary_value) noexcept;
 				bfloat16(int i) noexcept;
 				bfloat16(long long i) noexcept;

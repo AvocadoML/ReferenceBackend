@@ -54,22 +54,20 @@ namespace
 		return zero<T>();
 	}
 	template<typename T, typename U>
-	void kernel_unary_op(T *dst, const T *src, U alpha, U beta, avSize_t elements, avUnaryOp_t operation)
-	noexcept
+	void kernel_unary_op(T *dst, const T *src, U alpha, U beta, avSize_t elements, avUnaryOp_t operation) noexcept
 	{
 		if (beta == zero<U>())
 			clear(dst, elements);
 
 		for (avSize_t i = 0; i < elements; i++)
 		{
-			T value = static_cast<T>(alpha * static_cast<U>(src[i]));
-			T result = unary_op(operation, value);
-			dst[i] = static_cast<U>(result) + beta * static_cast<U>(dst[i]);
+			U value = alpha * static_cast<U>(src[i]);
+			U result = unary_op(operation, value);
+			dst[i] = result + beta * static_cast<U>(dst[i]);
 		}
 	}
 	template<typename T>
-	void kernel_unary_logical_op(T *dst, const T *src, avSize_t elements, avUnaryOp_t operation)
-	noexcept
+	void kernel_unary_logical_op(T *dst, const T *src, avSize_t elements, avUnaryOp_t operation) noexcept
 	{
 		clear(dst, elements);
 		for (avSize_t i = 0; i < elements; i++)
@@ -97,8 +95,11 @@ namespace avocado
 						break;
 					default:
 					case 4:
-						kernel_unary_logical_op(reference::getPointer<uint32_t>(cMem), reference::getPointer<uint32_t>(aMem), elements, operation);
+					{
+						const avSize_t tmp = elements * reference::dataTypeSize(reference::getTensor(aDesc).dtype()) / 4;
+						kernel_unary_logical_op(reference::getPointer<uint32_t>(cMem), reference::getPointer<uint32_t>(aMem), tmp, operation);
 						break;
+					}
 				}
 			}
 			else
@@ -106,20 +107,20 @@ namespace avocado
 				switch (reference::getTensor(cDesc).dtype())
 				{
 					case AVOCADO_DTYPE_FLOAT16:
-						kernel_unary_op(reference::getPointer<float16>(cMem), reference::getPointer<float16>(aMem), reference::getAlphaValue(alpha), reference::getBetaValue(beta), elements,
-								operation);
+						kernel_unary_op(reference::getPointer<float16>(cMem), reference::getPointer<float16>(aMem), reference::getAlphaValue(alpha),
+								reference::getBetaValue(beta), elements, operation);
 						break;
 					case AVOCADO_DTYPE_BFLOAT16:
-						kernel_unary_op(reference::getPointer<bfloat16>(cMem), reference::getPointer<bfloat16>(aMem), reference::getAlphaValue(alpha), reference::getBetaValue(beta), elements,
-								operation);
+						kernel_unary_op(reference::getPointer<bfloat16>(cMem), reference::getPointer<bfloat16>(aMem), reference::getAlphaValue(alpha),
+								reference::getBetaValue(beta), elements, operation);
 						break;
 					case AVOCADO_DTYPE_FLOAT32:
-						kernel_unary_op(reference::getPointer<float>(cMem), reference::getPointer<float>(aMem), reference::getAlphaValue(alpha), reference::getBetaValue(beta), elements,
-								operation);
+						kernel_unary_op(reference::getPointer<float>(cMem), reference::getPointer<float>(aMem), reference::getAlphaValue(alpha),
+								reference::getBetaValue(beta), elements, operation);
 						break;
 					case AVOCADO_DTYPE_FLOAT64:
-						kernel_unary_op(reference::getPointer<double>(cMem), reference::getPointer<double>(aMem), reference::getAlphaValue<double>(alpha), reference::getBetaValue<double>(beta),
-								elements, operation);
+						kernel_unary_op(reference::getPointer<double>(cMem), reference::getPointer<double>(aMem),
+								reference::getAlphaValue<double>(alpha), reference::getBetaValue<double>(beta), elements, operation);
 						break;
 					default:
 						return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
