@@ -117,8 +117,9 @@ namespace avocado
 							reference::getBetaValue(beta), reference::getPointer<float>(dyMem), reference::getPointer<float>(yMem), elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_activation_backward<double>(activation, reference::getAlphaValue(alpha), reference::getPointer<double>(dxMem),
-							reference::getBetaValue(beta), reference::getPointer<double>(dyMem), reference::getPointer<double>(yMem), elements);
+					kernel_activation_backward<double>(activation, reference::getAlphaValue<double>(alpha), reference::getPointer<double>(dxMem),
+							reference::getBetaValue<double>(beta), reference::getPointer<double>(dyMem), reference::getPointer<double>(yMem),
+							elements);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
@@ -177,8 +178,8 @@ namespace avocado
 							reference::getPointer<float>(yMem), elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_activation_backward<double>(AVOCADO_ACTIVATION_SOFTMAX, reference::getAlphaValue(alpha),
-							reference::getPointer<double>(dxMem), reference::getBetaValue(beta), reference::getPointer<double>(dyMem),
+					kernel_activation_backward<double>(AVOCADO_ACTIVATION_SOFTMAX, reference::getAlphaValue<double>(alpha),
+							reference::getPointer<double>(dxMem), reference::getBetaValue<double>(beta), reference::getPointer<double>(dyMem),
 							reference::getPointer<double>(yMem), elements);
 					break;
 				default:
