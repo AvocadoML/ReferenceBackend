@@ -74,7 +74,16 @@ namespace
 			for (avSize_t j = 0; j < dims.last; j++)
 			{
 				U value1 = alpha1 * static_cast<U>(src1[i * dims.last + j]);
-				U value2 = alpha2 * static_cast<U>(src2[i * dims.last + j]);
+				U value2;
+				if (dims.first == 1)
+					value2 = alpha2 * static_cast<U>(src2[i * dims.last + j]);
+				else
+				{
+					if (dims.last == 1)
+						value2 = alpha2 * static_cast<U>(src2[0]);
+					else
+						value2 = alpha2 * static_cast<U>(src2[j]);
+				}
 				U result = binary_op(operation, value1, value2);
 				dst[i * dims.last + j] = result + beta * static_cast<U>(dst[i * dims.last + j]);
 			}
