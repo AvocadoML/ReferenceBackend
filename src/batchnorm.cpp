@@ -38,7 +38,7 @@ namespace
 		for (avSize_t i = 0; i < dims.first; i++)
 			for (avSize_t j = 0; j < dims.last; j++)
 			{
-				T tmp = scale[j] * (input[i * dims.last + j] - estimated_mean[j]) / std::sqrt(epsilon + estimated_variance[j]) + bias[j];
+				T tmp = (input[i * dims.last + j] - estimated_mean[j]) / std::sqrt(epsilon + estimated_variance[j]);
 				tmp = activation_forward(type, scale[j] * tmp + bias[j]);
 				output[i * dims.last + j] = alpha * tmp + beta * output[i * dims.last + j];
 			}
@@ -233,7 +233,7 @@ namespace avocado
 					kernel_batchnorm_backward<float>(reference::getAlphaValue(alpha), reference::getBetaValue(beta), reference::getPointer<float>(xMem), reference::getPointer<float>(yMem),
 							reference::getPointer<float>(dxMem), reference::getPointer<float>(dyMem), reference::getPointer<float>(scaleMem), reference::getPointer<float>(meanMem),
 							reference::getPointer<float>(varianceMem), epsilon, dimensions, activation);
-					kernel_batchnorm_update<float>(reference::getAlphaValue(alpha), reference::getBetaValue(beta), reference::getPointer<float>(xMem), reference::getPointer<float>(dyMem),
+					kernel_batchnorm_update<float>(reference::getAlphaValue(alpha2), reference::getBetaValue(beta2), reference::getPointer<float>(xMem), reference::getPointer<float>(dyMem),
 							reference::getPointer<float>(scaleUpdateMem), reference::getPointer<float>(biasUpdateMem), reference::getPointer<float>(meanMem),
 							reference::getPointer<float>(varianceMem), epsilon, dimensions);
 					break;
@@ -243,7 +243,7 @@ namespace avocado
 					kernel_batchnorm_backward<double>(reference::getAlphaValue<double>(alpha), reference::getBetaValue<double>(beta), reference::getPointer<double>(xMem),
 							reference::getPointer<double>(yMem), reference::getPointer<double>(dxMem), reference::getPointer<double>(dyMem), reference::getPointer<double>(scaleMem),
 							reference::getPointer<double>(meanMem), reference::getPointer<double>(varianceMem), epsilon, dimensions, activation);
-					kernel_batchnorm_update<double>(reference::getAlphaValue(alpha), reference::getBetaValue(beta), reference::getPointer<double>(xMem), reference::getPointer<double>(dyMem),
+					kernel_batchnorm_update<double>(reference::getAlphaValue<double>(alpha2), reference::getBetaValue<double>(beta2), reference::getPointer<double>(xMem), reference::getPointer<double>(dyMem),
 							reference::getPointer<double>(scaleUpdateMem), reference::getPointer<double>(biasUpdateMem), reference::getPointer<double>(meanMem),
 							reference::getPointer<double>(varianceMem), epsilon, dimensions);
 					break;
