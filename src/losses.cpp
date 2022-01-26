@@ -22,10 +22,12 @@ namespace
 		return static_cast<T>(0.5) * result;
 	}
 	template<typename T>
-	void kernel_MSE_gradient(T *gradient, const T *output, const T *target, avSize_t elements, T inv_batch_size) noexcept
+	void kernel_MSE_gradient(T *gradient, const T *output, const T *target, avSize_t elements, T alpha, T beta) noexcept
 	{
+		if (beta == zero<T>())
+			clear(gradient, elements);
 		for (avSize_t i = 0; i < elements; i++)
-			gradient[i] = inv_batch_size * (output[i] - target[i]);
+			gradient[i] = alpha * (output[i] - target[i]) + beta * gradient[i];
 	}
 
 	template<typename T>
@@ -37,17 +39,19 @@ namespace
 		return -result;
 	}
 	template<typename T>
-	void kernel_CE_gradient(T *gradient, const T *output, const T *target, avSize_t elements, T inv_batch_size, bool fused) noexcept
+	void kernel_CE_gradient(T *gradient, const T *output, const T *target, avSize_t elements, T alpha, T beta, bool fused) noexcept
 	{
+		if (beta == zero<T>())
+			clear(gradient, elements);
 		if (fused)
 		{
 			for (avSize_t i = 0; i < elements; i++)
-				gradient[i] = inv_batch_size * (output[i] - target[i]);
+				gradient[i] = alpha * (output[i] - target[i]) + beta * gradient[i];
 		}
 		else
 		{
 			for (avSize_t i = 0; i < elements; i++)
-				gradient[i] = inv_batch_size * (output[i] - target[i]) / (eps<T>() + output[i] * (one<T>() - output[i]));
+				gradient[i] = alpha * (output[i] - target[i]) / (eps<T>() + output[i] * (one<T>() - output[i])) + beta * gradient[i];
 		}
 	}
 
@@ -61,17 +65,19 @@ namespace
 		return -result;
 	}
 	template<typename T>
-	void kernel_KL_gradient(T *gradient, const T *output, const T *target, avSize_t elements, T inv_batch_size, bool fused) noexcept
+	void kernel_KL_gradient(T *gradient, const T *output, const T *target, avSize_t elements, T alpha, T beta, bool fused) noexcept
 	{
+		if (beta == zero<T>())
+			clear(gradient, elements);
 		if (fused)
 		{
 			for (avSize_t i = 0; i < elements; i++)
-				gradient[i] = inv_batch_size * (output[i] - target[i]);
+				gradient[i] = alpha * (output[i] - target[i]) + beta * gradient[i];
 		}
 		else
 		{
 			for (avSize_t i = 0; i < elements; i++)
-				gradient[i] = inv_batch_size * (output[i] - target[i]) / (eps<T>() + output[i] * (one<T>() - output[i]));
+				gradient[i] = alpha * (output[i] - target[i]) / (eps<T>() + output[i] * (one<T>() - output[i])) + beta * gradient[i];
 		}
 	}
 
@@ -91,19 +97,19 @@ namespace
 		}
 	}
 	template<typename T>
-	void gradient_helper(avLossType_t lossType, T *gradient, const T *output, const T *target, avSize_t elements, T inv_batch_size, bool fused)
+	void gradient_helper(avLossType_t lossType, T *gradient, const T *output, const T *target, avSize_t elements, T alpha, T beta, bool fused)
 	noexcept
 	{
 		switch (lossType)
 		{
 			case AVOCADO_MEAN_SQUARE_LOSS:
-				kernel_MSE_gradient(gradient, output, target, elements, inv_batch_size);
+				kernel_MSE_gradient(gradient, output, target, elements, alpha, beta);
 				break;
 			case AVOCADO_CROSS_ENTROPY_LOSS:
-				kernel_CE_gradient(gradient, output, target, elements, inv_batch_size, fused);
+				kernel_CE_gradient(gradient, output, target, elements, alpha, beta, fused);
 				break;
 			case AVOCADO_KL_DIVERGENCE_LOSS:
-				kernel_KL_gradient(gradient, output, target, elements, inv_batch_size, fused);
+				kernel_KL_gradient(gradient, output, target, elements, alpha, beta, fused);
 				break;
 		}
 	}
@@ -114,8 +120,8 @@ namespace avocado
 	namespace backend
 	{
 
-		avStatus_t refLossFunction(avContextDescriptor_t context, avLossType_t lossType, void *result, const avTensorDescriptor_t outputDesc,
-				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem)
+		avStatus_t refLossFunction(avContextDescriptor_t context, avLossType_t lossType, const avTensorDescriptor_t outputDesc,
+				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, void *result)
 		{
 			const avSize_t elements = reference::getTensor(outputDesc).volume();
 			switch (reference::getTensor(outputDesc).dtype())
@@ -129,7 +135,7 @@ namespace avocado
 				case AVOCADO_DTYPE_FLOAT64:
 				{
 					double loss = loss_helper(lossType, reference::getPointer<double>(outputMem), reference::getPointer<double>(targetMem), elements);
-					std::memcpy(result, &loss, sizeof(float));
+					std::memcpy(result, &loss, sizeof(double));
 					break;
 				}
 				default:
@@ -137,23 +143,25 @@ namespace avocado
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t refLossGradient(avContextDescriptor_t context, avLossType_t lossType, const void *alpha, const void *beta,
-				const avTensorDescriptor_t gradientDesc, avMemoryDescriptor_t gradientMem, const avTensorDescriptor_t outputDesc,
-				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, bool isFused)
+		avStatus_t refLossGradient(avContextDescriptor_t context, avLossType_t lossType, const void *alpha, const avTensorDescriptor_t outputDesc,
+				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, const void *beta,
+				const avTensorDescriptor_t gradientDesc, avMemoryDescriptor_t gradientMem, bool isFused)
 		{
 			const avSize_t elements = reference::getTensor(outputDesc).volume();
 			switch (reference::getTensor(outputDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT32:
 				{
-					gradient_helper(lossType, reference::getPointer<float>(gradientMem), reference::getPointer<float>(outputMem), reference::getPointer<float>(targetMem), elements,
-							one<float>() / reference::getTensor(outputDesc).firstDim(), isFused);
+					gradient_helper(lossType, reference::getPointer<float>(gradientMem), reference::getPointer<float>(outputMem),
+							reference::getPointer<float>(targetMem), elements, reference::getAlphaValue(alpha), reference::getBetaValue(beta),
+							isFused);
 					break;
 				}
 				case AVOCADO_DTYPE_FLOAT64:
 				{
-					gradient_helper(lossType, reference::getPointer<double>(gradientMem), reference::getPointer<double>(outputMem), reference::getPointer<double>(targetMem), elements,
-							one<double>() / reference::getTensor(outputDesc).firstDim(), isFused);
+					gradient_helper(lossType, reference::getPointer<double>(gradientMem), reference::getPointer<double>(outputMem),
+							reference::getPointer<double>(targetMem), elements, reference::getAlphaValue<double>(alpha),
+							reference::getBetaValue<double>(beta), isFused);
 					break;
 				}
 				default:
