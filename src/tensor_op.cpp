@@ -102,17 +102,17 @@ namespace
 	}
 
 	template<typename T, typename U>
-	void kernel_scale_tensor(T *dst, U value, avSize_t elements) noexcept
+	void kernel_scale_tensor(T *dst, const T *src, U value, avSize_t elements) noexcept
 	{
 		for (avSize_t i = 0; i < elements; i++)
-			dst[i] = static_cast<U>(dst[i]) * value;
+			dst[i] = static_cast<U>(src[i]) * value;
 	}
 	template<typename T>
-	void kernel_add_scalar_to_tensor(T *dst, const void *scalar, avSize_t elements) noexcept
+	void kernel_add_scalar_to_tensor(T *dst, const T *src, const void *scalar, avSize_t elements) noexcept
 	{
 		const T value = reference::getScalarValue<T>(scalar);
 		for (avSize_t i = 0; i < elements; i++)
-			dst[i] += value;
+			dst[i] = src[i] + value;
 	}
 
 	template<typename T, typename U, typename V>
@@ -215,89 +215,101 @@ namespace avocado
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t refScaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, const void *alpha)
+		avStatus_t refScaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *alpha,
+				const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
 			const avSize_t elements = reference::getTensor(cDesc).volume();
 			switch (reference::getTensor(cDesc).dtype())
 			{
 				case AVOCADO_DTYPE_UINT8:
-					kernel_scale_tensor(reference::getPointer<uint8_t>(cMem), reference::getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<uint8_t>(cMem), reference::getPointer<uint8_t>(aMem), reference::getAlphaValue(alpha),
+							elements);
 					break;
 				case AVOCADO_DTYPE_INT8:
-					kernel_scale_tensor(reference::getPointer<int8_t>(cMem), reference::getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<int8_t>(cMem), reference::getPointer<int8_t>(aMem), reference::getAlphaValue(alpha),
+							elements);
 					break;
 				case AVOCADO_DTYPE_INT16:
-					kernel_scale_tensor(reference::getPointer<int16_t>(cMem), reference::getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<int16_t>(cMem), reference::getPointer<int16_t>(aMem), reference::getAlphaValue(alpha),
+							elements);
 					break;
 				case AVOCADO_DTYPE_INT32:
-					kernel_scale_tensor(reference::getPointer<int32_t>(cMem), reference::getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<int32_t>(cMem), reference::getPointer<int32_t>(aMem), reference::getAlphaValue(alpha),
+							elements);
 					break;
 				case AVOCADO_DTYPE_INT64:
-					kernel_scale_tensor(reference::getPointer<int64_t>(cMem), reference::getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<int64_t>(cMem), reference::getPointer<int64_t>(aMem), reference::getAlphaValue(alpha),
+							elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT16:
-					kernel_scale_tensor(reference::getPointer<float16>(cMem), reference::getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<float16>(cMem), reference::getPointer<float16>(aMem), reference::getAlphaValue(alpha),
+							elements);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_scale_tensor(reference::getPointer<bfloat16>(cMem), reference::getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<bfloat16>(cMem), reference::getPointer<bfloat16>(aMem), reference::getAlphaValue(alpha),
+							elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					kernel_scale_tensor(reference::getPointer<float>(cMem), reference::getAlphaValue(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<float>(cMem), reference::getPointer<float>(aMem), reference::getAlphaValue(alpha),
+							elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_scale_tensor(reference::getPointer<double>(cMem), reference::getAlphaValue<double>(alpha), elements);
+					kernel_scale_tensor(reference::getPointer<double>(cMem), reference::getPointer<double>(aMem),
+							reference::getAlphaValue<double>(alpha), elements);
 					break;
 				case AVOCADO_DTYPE_COMPLEX32:
-					kernel_scale_tensor(reference::getPointer<std::complex<float>>(cMem), reference::getAlphaValue<std::complex<float>>(alpha),
-							elements);
+					kernel_scale_tensor(reference::getPointer<std::complex<float>>(cMem), reference::getPointer<std::complex<float>>(aMem),
+							reference::getAlphaValue<std::complex<float>>(alpha), elements);
 					break;
 				case AVOCADO_DTYPE_COMPLEX64:
-					kernel_scale_tensor(reference::getPointer<std::complex<double>>(cMem), reference::getAlphaValue<std::complex<double>>(alpha),
-							elements);
+					kernel_scale_tensor(reference::getPointer<std::complex<double>>(cMem), reference::getPointer<std::complex<double>>(aMem),
+							reference::getAlphaValue<std::complex<double>>(alpha), elements);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t refAddScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
-				const void *scalar)
+		avStatus_t refAddScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem,
+				const void *scalar, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
 			const avSize_t elements = reference::getTensor(cDesc).volume();
 			switch (reference::getTensor(cDesc).dtype())
 			{
 				case AVOCADO_DTYPE_UINT8:
-					kernel_add_scalar_to_tensor(reference::getPointer<uint8_t>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<uint8_t>(cMem), reference::getPointer<uint8_t>(aMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_INT8:
-					kernel_add_scalar_to_tensor(reference::getPointer<int8_t>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<int8_t>(cMem), reference::getPointer<int8_t>(aMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_INT16:
-					kernel_add_scalar_to_tensor(reference::getPointer<int16_t>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<int16_t>(cMem), reference::getPointer<int16_t>(aMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_INT32:
-					kernel_add_scalar_to_tensor(reference::getPointer<int32_t>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<int32_t>(cMem), reference::getPointer<int32_t>(aMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_INT64:
-					kernel_add_scalar_to_tensor(reference::getPointer<int64_t>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<int64_t>(cMem), reference::getPointer<int64_t>(aMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT16:
-					kernel_add_scalar_to_tensor(reference::getPointer<float16>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<float16>(cMem), reference::getPointer<float16>(aMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_add_scalar_to_tensor(reference::getPointer<bfloat16>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<bfloat16>(cMem), reference::getPointer<bfloat16>(aMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					kernel_add_scalar_to_tensor(reference::getPointer<float>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<float>(cMem), reference::getPointer<float>(aMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_add_scalar_to_tensor(reference::getPointer<double>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<double>(cMem), reference::getPointer<double>(aMem), scalar, elements);
 					break;
 				case AVOCADO_DTYPE_COMPLEX32:
-					kernel_add_scalar_to_tensor(reference::getPointer<std::complex<float>>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<std::complex<float>>(cMem), reference::getPointer<std::complex<float>>(aMem),
+							scalar, elements);
 					break;
 				case AVOCADO_DTYPE_COMPLEX64:
-					kernel_add_scalar_to_tensor(reference::getPointer<std::complex<double>>(cMem), scalar, elements);
+					kernel_add_scalar_to_tensor(reference::getPointer<std::complex<double>>(cMem), reference::getPointer<std::complex<double>>(aMem),
+							scalar, elements);
 					break;
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
