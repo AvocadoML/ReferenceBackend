@@ -21,61 +21,71 @@ namespace
 	}
 
 	template<typename T>
-	void kernel_learn_sgd(T *weight, const T *update, T *momentum, avSize_t elements, T learning_rate, T beta, bool use_momentum, bool use_nesterov)
+	void kernel_learn_sgd(T *weight, const T *update, T *momentum, avSize_t elements, T learning_rate, T beta1, bool use_momentum, bool use_nesterov,
+			T alpha, T beta)
 	{
+		if (beta == zero<T>())
+			clear(weight, elements);
 		for (avSize_t i = 0; i < elements; i++)
 		{
 			T tmp;
 			if (use_momentum)
 			{
-				momentum[i] = beta * momentum[i] - learning_rate * update[i];
+				momentum[i] = beta1 * momentum[i] - learning_rate * update[i];
 				if (use_nesterov)
-					tmp = beta * momentum[i] - learning_rate * update[i];
+					tmp = beta1 * momentum[i] - learning_rate * update[i];
 				else
 					tmp = momentum[i];
 			}
 			else
 				tmp = -learning_rate * update[i];
-
-			weight[i] = round_small_to_zero(weight[i] + tmp);
+			weight[i] = round_small_to_zero(alpha * tmp + beta * weight[i]);
 		}
 	}
 	template<typename T>
-	void kernel_learn_adam(T *weight, const T *update, T *momentum, T *variance, avSize_t elements, T learning_rate, T beta1, T beta2)
+	void kernel_learn_adam(T *weight, const T *update, T *momentum, T *variance, avSize_t elements, T learning_rate, T beta1, T beta2, T alpha,
+			T beta)
 	{
+		if (beta == zero<T>())
+			clear(weight, elements);
 		for (avSize_t i = 0; i < elements; i++)
 		{
 			momentum[i] = momentum[i] * beta1 + update[i] * (one<T>() - beta1);
 			variance[i] = variance[i] * beta2 + update[i] * update[i] * (one<T>() - beta2);
 			T tmp = -momentum[i] * learning_rate / std::sqrt(variance[i] + eps<T>());
-
-			weight[i] = round_small_to_zero(weight[i] + tmp);
+			weight[i] = round_small_to_zero(alpha * tmp + beta * weight[i]);
 		}
 	}
 
-	avStatus_t sgd_helper(const reference::OptimizerDescriptor &optimizer, const reference::TensorDescriptor &weightDesc,
-			reference::MemoryDescriptor &weight, const reference::MemoryDescriptor &update, reference::MemoryDescriptor &workspace)
+	avStatus_t sgd_helper(const reference::OptimizerDescriptor &optimizer, const void *alpha, const reference::MemoryDescriptor &dwMem,
+			const void *beta, const reference::TensorDescriptor &wDesc, reference::MemoryDescriptor &wMem, reference::MemoryDescriptor &workspace)
 	{
-		const avSize_t elements = weightDesc.volume();
+		const avSize_t elements = wDesc.volume();
 		bool use_momentum = optimizer.flags[0];
 		bool use_nesterov = optimizer.flags[1];
 
-		switch (weightDesc.dtype())
+		switch (wDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
-				float beta = optimizer.coef[0];
+				float _alpha = reference::getAlphaValue(alpha);
+				float _beta = reference::getBetaValue(beta);
+				float beta1 = optimizer.coef[0];
 				float learning_rate = optimizer.learning_rate;
-				float *momentum = use_momentum ? nullptr : workspace.data<float>();
-				kernel_learn_sgd(weight.data<float>(), update.data<float>(), momentum, elements, learning_rate, beta, use_momentum, use_nesterov);
+				float *momentum = use_momentum ? workspace.data<float>() : nullptr;
+				kernel_learn_sgd(wMem.data<float>(), dwMem.data<float>(), momentum, elements, learning_rate, beta1, use_momentum, use_nesterov,
+						_alpha, _beta);
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
-				double beta = optimizer.coef[0];
+				double _alpha = reference::getAlphaValue<double>(alpha);
+				double _beta = reference::getBetaValue<double>(beta);
+				double beta1 = optimizer.coef[0];
 				double learning_rate = optimizer.learning_rate;
-				double *momentum = use_momentum ? nullptr : workspace.data<double>();
-				kernel_learn_sgd(weight.data<double>(), update.data<double>(), momentum, elements, learning_rate, beta, use_momentum, use_nesterov);
+				double *momentum = use_momentum ? workspace.data<double>() : nullptr;
+				kernel_learn_sgd(wMem.data<double>(), dwMem.data<double>(), momentum, elements, learning_rate, beta1, use_momentum, use_nesterov,
+						_alpha, _beta);
 				break;
 			}
 			default:
@@ -83,8 +93,8 @@ namespace
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
-	avStatus_t adam_helper(const reference::OptimizerDescriptor &optimizer, const reference::TensorDescriptor &wDesc,
-			reference::MemoryDescriptor &weight, const reference::MemoryDescriptor &update, reference::MemoryDescriptor &workspace)
+	avStatus_t adam_helper(const reference::OptimizerDescriptor &optimizer, const void *alpha, const reference::MemoryDescriptor &dwMem,
+			const void *beta, const reference::TensorDescriptor &wDesc, reference::MemoryDescriptor &wMem, reference::MemoryDescriptor &workspace)
 	{
 		const avSize_t elements = wDesc.volume();
 
@@ -94,20 +104,24 @@ namespace
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
+				float _alpha = reference::getAlphaValue(alpha);
+				float _beta = reference::getBetaValue(beta);
 				float beta1 = optimizer.coef[0];
 				float beta2 = optimizer.coef[1];
 				float learning_rate = optimizer.learning_rate;
-				kernel_learn_adam(weight.data<float>(), update.data<float>(), workspace.data<float>(), workspace.data<float>() + elements, elements,
-						learning_rate, beta1, beta2);
+				kernel_learn_adam(wMem.data<float>(), dwMem.data<float>(), workspace.data<float>(), workspace.data<float>() + elements, elements,
+						learning_rate, beta1, beta2, _alpha, _beta);
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
+				double _alpha = reference::getAlphaValue<double>(alpha);
+				double _beta = reference::getBetaValue<double>(beta);
 				double beta1 = optimizer.coef[0];
 				double beta2 = optimizer.coef[1];
 				double learning_rate = optimizer.learning_rate;
-				kernel_learn_adam(weight.data<double>(), update.data<double>(), workspace.data<double>(), workspace.data<double>() + elements,
-						elements, learning_rate, beta1, beta2);
+				kernel_learn_adam(wMem.data<double>(), dwMem.data<double>(), workspace.data<double>(), workspace.data<double>() + elements, elements,
+						learning_rate, beta1, beta2, _alpha, _beta);
 				break;
 			}
 			default:
@@ -121,17 +135,18 @@ namespace avocado
 {
 	namespace backend
 	{
-		avStatus_t refOptimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const avTensorDescriptor_t wDesc,
-				avMemoryDescriptor_t wMem, const avTensorDescriptor_t dwDesc, const avMemoryDescriptor_t dwMem, avMemoryDescriptor_t workspace)
+		avStatus_t refOptimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const void *alpha,
+				const avTensorDescriptor_t dwDesc, const avMemoryDescriptor_t dwMem, const void *beta, const avTensorDescriptor_t wDesc,
+				avMemoryDescriptor_t wMem, avMemoryDescriptor_t workspace)
 		{
 			switch (reference::getOptimizer(config).type)
 			{
 				case AVOCADO_OPTIMIZER_SGD:
-					return sgd_helper(reference::getOptimizer(config), reference::getTensor(wDesc), reference::getMemory(wMem),
-							reference::getMemory(dwMem), reference::getMemory(workspace));
+					return sgd_helper(reference::getOptimizer(config), alpha, reference::getMemory(dwMem), beta, reference::getTensor(wDesc),
+							reference::getMemory(wMem), reference::getMemory(workspace));
 				case AVOCADO_OPTIMIZER_ADAM:
-					return adam_helper(reference::getOptimizer(config), reference::getTensor(wDesc), reference::getMemory(wMem),
-							reference::getMemory(dwMem), reference::getMemory(workspace));
+					return adam_helper(reference::getOptimizer(config), alpha, reference::getMemory(dwMem), beta, reference::getTensor(wDesc),
+							reference::getMemory(wMem), reference::getMemory(workspace));
 				default:
 					return AVOCADO_STATUS_BAD_PARAM;
 			}

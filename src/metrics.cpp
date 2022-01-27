@@ -18,8 +18,8 @@ namespace avocado
 {
 	namespace backend
 	{
-		avStatus_t refMetricFunction(avContextDescriptor_t context, avMetricType_t metricType, void *result, const avTensorDescriptor_t outputDesc,
-				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem)
+		avStatus_t refMetricFunction(avContextDescriptor_t context, avMetricType_t metricType, const avTensorDescriptor_t outputDesc,
+				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, void *result)
 		{
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 		}
