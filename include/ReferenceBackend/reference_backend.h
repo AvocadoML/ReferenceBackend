@@ -644,6 +644,7 @@ namespace avocado
 		 * \brief Sets convolution descriptor.
 		 *
 		 * \param[in] desc
+		 * \param[in] algorithm
 		 * \param[in] mode
 		 * \param[in] nbDims Dimensionality of the convolution. Its value must be 1, 2 or 3.
 		 * \param[in] padding Array with padding offsets. This parameter is optional (can be null), a value of 0 will be used for all dimensions.
@@ -652,13 +653,15 @@ namespace avocado
 		 * \param[in] groups Number of groups in the convolution. Must be greaten than 0.
 		 * \param[in] paddingValue Pointer to at least 16 bytes of memory with the value of tensor padding. This parameter is optional (can be null), a value of 0 will be used then.
 		 */
-		DLL_PUBLIC avStatus_t refSetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionMode_t mode, int nbDims, const int padding[],
-				const int strides[], const int dilation[], int groups, const void *paddingValue);
+		DLL_PUBLIC avStatus_t refSetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionAlgorithm_t algorithm,
+				avConvolutionMode_t mode, int nbDims, const int padding[], const int strides[], const int dilation[], int groups,
+				const void *paddingValue);
 
 		/**
 		 * \brief Queries parameters of convolution descriptor.
 		 *
 		 * \param[in] desc
+		 * \param[out] algorithm
 		 * \param[out] mode
 		 * \param[out] nbDims
 		 * \param[out] padding
@@ -667,8 +670,8 @@ namespace avocado
 		 * \param[out] groups
 		 * \param[out] paddingValue Pointer to at least 16 bytes of memory with the value of tensor padding. This parameter is optional (can be null), will be ignored then.
 		 */
-		DLL_PUBLIC avStatus_t refGetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionMode_t *mode, int *nbDims, int padding[],
-				int strides[], int dilation[], int *groups, void *paddingValue);
+		DLL_PUBLIC avStatus_t refGetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionAlgorithm_t *algorithm,
+				avConvolutionMode_t *mode, int *nbDims, int padding[], int strides[], int dilation[], int *groups, void *paddingValue);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
@@ -693,8 +696,8 @@ namespace avocado
 		 * \param[in] bDesc Descriptor of the bias tensor.
 		 * \param[out] result Pointer to the integer with number of bytes required for the workspace.
 		 */
-		DLL_PUBLIC avStatus_t refGetConvolutionWorkspaceSize(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
-				const avTensorDescriptor_t xDesc, const avTensorDescriptor_t wDesc, const avTensorDescriptor_t bDesc, avSize_t *result);
+		DLL_PUBLIC avStatus_t refGetConvolutionWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
+				const avTensorDescriptor_t wDesc, avSize_t *result);
 
 		/**
 		 * \brief Calculates convolution, adds bias and optionally some external data and applies activation function.

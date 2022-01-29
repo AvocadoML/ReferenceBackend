@@ -40,11 +40,11 @@ namespace
 
 		const T padding_value = reference::getScalarValue<T>(config.padding_value.data());
 
-		reference::TensorDescriptor output_shape = reference::getConvolutionOutputShape(config, srcDesc, filterDesc);
+		std::vector<int> output_shape = config.getOutputShape(srcDesc, filterDesc);
 
 		int tile_idx = 0;
 		for (int b = 0; b < batch_size; b++)
-			for (int h = 0; h < output_shape.dimension(1); h++, tile_idx++)
+			for (int h = 0; h < output_shape[1]; h++, tile_idx++)
 			{
 				int tmp_idx = 0;
 				for (int i = 0; i < filter_height; i++)
@@ -91,12 +91,12 @@ namespace
 
 		const T padding_value = reference::getScalarValue<T>(config.padding_value.data());
 
-		reference::TensorDescriptor output_shape = reference::getConvolutionOutputShape(config, srcDesc, filterDesc);
+		std::vector<int> output_shape = config.getOutputShape(srcDesc, filterDesc);
 
 		int tile_idx = 0;
 		for (int b = 0; b < batch_size; b++)
-			for (int h = 0; h < output_shape.dimension(1); h++)
-				for (int w = 0; w < output_shape.dimension(2); w++, tile_idx++)
+			for (int h = 0; h < output_shape[1]; h++)
+				for (int w = 0; w < output_shape[2]; w++, tile_idx++)
 				{
 					int tmp_idx = 0;
 					for (int i = 0; i < filter_height; i++)
@@ -160,15 +160,15 @@ namespace avocado
 			switch (reference::dataTypeSize(reference::getTensor(srcDesc).dtype()))
 			{
 				case 1:
-					return launcher_im2row<int8_t>(config, rowDesc, rowMem, srcDesc, srcMem, filterDesc);
+					return launcher_im2row<int8_t>(config, filterDesc, srcDesc, srcMem, rowDesc, rowMem);
 				case 2:
-					return launcher_im2row<int16_t>(config, rowDesc, rowMem, srcDesc, srcMem, filterDesc);
+					return launcher_im2row<int16_t>(config, filterDesc, srcDesc, srcMem, rowDesc, rowMem);
 				case 4:
-					return launcher_im2row<int32_t>(config, rowDesc, rowMem, srcDesc, srcMem, filterDesc);
+					return launcher_im2row<int32_t>(config, filterDesc, srcDesc, srcMem, rowDesc, rowMem);
 				case 8:
-					return launcher_im2row<int2>(config, rowDesc, rowMem, srcDesc, srcMem, filterDesc);
+					return launcher_im2row<int2>(config, filterDesc, srcDesc, srcMem, rowDesc, rowMem);
 				case 16:
-					return launcher_im2row<int4>(config, rowDesc, rowMem, srcDesc, srcMem, filterDesc);
+					return launcher_im2row<int4>(config, filterDesc, srcDesc, srcMem, rowDesc, rowMem);
 				default:
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 			}
