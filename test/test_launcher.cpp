@@ -6,6 +6,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <ReferenceBackend/reference_backend_v2.hpp>
 
 int main(int argc, char *argv[])
 {

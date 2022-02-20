@@ -44,6 +44,12 @@ namespace
 				case AVOCADO_REDUCE_MAX:
 					workspace[j] = -max_value<U>::get();
 					break;
+				case AVOCADO_REDUCE_LOGICAL_OR:
+					workspace[j] = 0;
+					break;
+				case AVOCADO_REDUCE_LOGICAL_AND:
+					workspace[j] = -1;
+					break;
 			}
 		}
 
@@ -82,6 +88,12 @@ namespace
 					case AVOCADO_REDUCE_MUL_NO_ZEROS:
 						if (value != zero<U>())
 							workspace[j] *= value;
+						break;
+					case AVOCADO_REDUCE_LOGICAL_OR:
+//						workspace[j] |= value; FIXME
+						break;
+					case AVOCADO_REDUCE_LOGICAL_AND:
+//						workspace[j] &= value; FIXME
 						break;
 				}
 			}

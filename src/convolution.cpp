@@ -17,7 +17,7 @@ namespace
 	using namespace avocado::backend::reference;
 
 	template<typename DataType, typename ComputeType = DataType, typename ScalingType = DataType>
-	void kernel_convolution_1d(const ConvolutionDescriptor &config, ScalingType alpha1, const TensorDescriptor &xDesc, const DataType *xMem,
+	void kernel_convolution_forward_1d(const ConvolutionDescriptor &config, ScalingType alpha1, const TensorDescriptor &xDesc, const DataType *xMem,
 			const TensorDescriptor &wDesc, const DataType *wMem, ScalingType beta, const TensorDescriptor &yDesc, DataType *yMem,
 			avActivationType_t activation = AVOCADO_ACTIVATION_LINEAR, ScalingType alpha2 = zero<ScalingType>(), const ScalingType *bMem = nullptr,
 			const DataType *zMem = nullptr)
@@ -79,7 +79,7 @@ namespace
 			}
 	}
 	template<typename DataType, typename ComputeType = DataType, typename ScalingType = DataType>
-	void kernel_convolution_2d(const ConvolutionDescriptor &config, ScalingType alpha1, const TensorDescriptor &xDesc, const DataType *xMem,
+	void kernel_convolution_forward_2d(const ConvolutionDescriptor &config, ScalingType alpha1, const TensorDescriptor &xDesc, const DataType *xMem,
 			const TensorDescriptor &wDesc, const DataType *wMem, ScalingType beta, const TensorDescriptor &yDesc, DataType *yMem,
 			avActivationType_t activation = AVOCADO_ACTIVATION_LINEAR, ScalingType alpha2 = zero<ScalingType>(), const ScalingType *bMem = nullptr,
 			const DataType *zMem = nullptr)
@@ -409,10 +409,10 @@ namespace
 		switch (wDesc.nbDims())
 		{
 			case 3: // 1D convolution
-				kernel_convolution_1d(config, alpha1, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem, activation, alpha2, bMem, zMem);
+				kernel_convolution_forward_1d(config, alpha1, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem, activation, alpha2, bMem, zMem);
 				return AVOCADO_STATUS_NOT_SUPPORTED;
 			case 4: // 2D convolution
-				kernel_convolution_2d(config, alpha1, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem, activation, alpha2, bMem, zMem);
+				kernel_convolution_forward_2d(config, alpha1, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem, activation, alpha2, bMem, zMem);
 				return AVOCADO_STATUS_SUCCESS;
 			case 5: // 3D convolution
 				return AVOCADO_STATUS_NOT_SUPPORTED; // TODO
@@ -463,19 +463,11 @@ namespace avocado
 	namespace backend
 	{
 		using namespace reference;
-		avStatus_t refGetConvolutionWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
-				const avTensorDescriptor_t wDesc, bool inferenceOnly, avSize_t *result)
-		{
-			if (result == nullptr)
-				return AVOCADO_STATUS_BAD_PARAM;
-			result[0] = 0;
-			return AVOCADO_STATUS_SUCCESS;
-		}
-		avStatus_t refConvolutionBiasActivationForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
+		avStatus_t refConvolutionImplicitGemmForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
 				const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2, const avTensorDescriptor_t zDesc,
 				const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem,
-				const avActivationType_t activation, avMemoryDescriptor_t workspaceMem)
+				avActivationType_t activation)
 		{
 			switch (getTensor(xDesc).dtype())
 			{
@@ -508,6 +500,15 @@ namespace avocado
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 			}
 			return AVOCADO_STATUS_SUCCESS;
+		}
+		avStatus_t refConvolutionWinogradFusedForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
+				const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2, const avTensorDescriptor_t zDesc,
+				const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem,
+				avActivationType_t activation)
+		{
+			return refConvolutionImplicitGemmForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc,
+					yMem, activation);
 		}
 		avStatus_t refConvolutionForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
