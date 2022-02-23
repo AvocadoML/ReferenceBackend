@@ -171,11 +171,11 @@ namespace
 				result.insert( { TransformKey { 3, 2, TransformType::INPUT }, matrix<double>( { { 1.0, 0.0, -1.0, 0.0 }, { 0.0, 1.0, 1.0, 0.0 }, {
 						0.0, -1.0, 1.0, 0.0 }, { 0.0, -1.0, 0.0, 1.0 } }) });
 				result.insert(
-						{ TransformKey { 3, 2, TransformType::OUTPUT }, matrix<double>( { { 0.5, 0.5, 0.5, 0.0 }, { 0.0, 0.5, -0.5, 0.5 } }) });
+						{ TransformKey { 3, 2, TransformType::OUTPUT }, matrix<double>( { { 1.0, 0.5, 0.5, 0.0 }, { 0.0, 0.5, -0.5, 1.0 } }) });
 				result.insert( { TransformKey { 3, 2, TransformType::GRADIENT }, matrix<double>( { { 1.0, 0.0 }, { 1.0, 1.0 }, { 1.0, -1.0 }, { 0.0,
 						1.0 } }) });
-				result.insert( { TransformKey { 3, 2, TransformType::UPDATE }, matrix<double>( { { 0.5, 0.5, 0.5, 0.0 }, { 0.0, 0.5, -0.5, 0.0 }, {
-						0.0, 0.5, 0.5, 0.5 } }) });
+				result.insert( { TransformKey { 3, 2, TransformType::UPDATE }, matrix<double>( { { 1.0, 0.5, 0.5, 0.0 }, { 0.0, 0.5, -0.5, 0.0 }, {
+						0.0, 0.5, 0.5, 1.0 } }) });
 
 				result.insert( { TransformKey { 3, 4, TransformType::WEIGHT }, matrix<double>( { { 1.0, 0.0, 0.0 }, { c23, c23, c23 }, { c23, -c23,
 						c23 }, { c13, c23, c43 }, { c13, -c23, c43 }, { 0.0, 0.0, 2.0 } }) });
@@ -193,9 +193,9 @@ namespace
 						{ TransformKey { 5, 2, TransformType::WEIGHT }, matrix<double>(
 								{ { 1.0, 0.0, 0.0, 0.0, 0.0 }, { c23, c23, c23, c23, c23 }, { c23, -c23, c23, -c23, c23 },
 										{ c16, c13, c23, c43, c83 }, { c16, -c13, c23, -c43, c83 }, { 0.0, 0.0, 0.0, 0.0, 2.0 } }) });
-				result.insert( { TransformKey { 5, 2, TransformType::INPUT }, matrix<double>( { { 1.0, 0.0, -1.25, 0.0, 0.25, 0.0 }, { 0.0, 2.0, 2.0,
-						-0.5, -0.5, 0.0 }, { 0.0, -2.0, 2.0, 0.5, -0.5, 0.0 }, { 0.0, -1.0, -0.5, 1.0, 0.5, 0.0 }, { 0.0, 1.0, -0.5, -1.0, 0.5, 0.0 },
-						{ 0.0, 1.0, 0.0, -1.25, 0.0, 0.25 } }) });
+				result.insert( { TransformKey { 5, 2, TransformType::INPUT }, matrix<double>( { { 1.0, 0.0, -1.25, 0.0, 0.25, 0.0 }, { 0.0, 1.0, 1.0,
+						-0.25, -0.25, 0.0 }, { 0.0, -1.0, 1.0, 0.25, -0.25, 0.0 }, { 0.0, -1.0, -0.5, 1.0, 0.5, 0.0 }, { 0.0, 1.0, -0.5, -1.0, 0.5,
+						0.0 }, { 0.0, 1.0, 0.0, -1.25, 0.0, 0.25 } }) });
 				result.insert( { TransformKey { 5, 2, TransformType::OUTPUT }, matrix<double>( { { 1.0, 1.0, 1.0, 0.5, 0.5, 0.0 }, { 0.0, 1.0, -1.0,
 						1.0, -1.0, 2.0 } }) });
 				result.insert( { TransformKey { 5, 2, TransformType::GRADIENT }, matrix<double>( { { 1.0, 0.0 }, { c23, c23 }, { c23, -c23 }, { c13,
@@ -230,11 +230,11 @@ namespace
 			case TransformType::INPUT:
 				return kernelSize + transformSize - 1;
 			case TransformType::OUTPUT:
-				return kernelSize + transformSize - 1;
+				return transformSize;
 			case TransformType::GRADIENT:
 				return transformSize;
 			case TransformType::UPDATE:
-				return kernelSize + transformSize - 1;
+				return kernelSize;
 			default:
 				return 0;
 		}
@@ -248,11 +248,11 @@ namespace
 			case TransformType::INPUT:
 				return kernelSize + transformSize - 1;
 			case TransformType::OUTPUT:
-				return transformSize;
+				return kernelSize + transformSize - 1;
 			case TransformType::GRADIENT:
 				return kernelSize + transformSize - 1;
 			case TransformType::UPDATE:
-				return kernelSize;
+				return kernelSize + transformSize - 1;
 			default:
 				return 0;
 		}
@@ -317,8 +317,33 @@ namespace
 									initial_tile.at(tmp_r, tmp_c) = paddingValue;
 							}
 
+//						for (int r = 0; r < initial_tile.rows(); r++)
+//						{
+//							for (int c = 0; c < initial_tile.cols(); c++)
+//								std::cout << static_cast<float>(initial_tile.at(r, c)) << " ";
+//							std::cout << '\n';
+//						}
+//						std::cout << "-------------------------------------------\n";
+
 						matrix<T> tmp = mult(transform_matrix, initial_tile);
+//						for (int r = 0; r < tmp.rows(); r++)
+//						{
+//							for (int c = 0; c < tmp.cols(); c++)
+//								std::cout << static_cast<float>(tmp.at(r, c)) << " ";
+//							std::cout << '\n';
+//						}
+//						std::cout << "-------------------------------------------\n";
+
 						matrix<T> final_tile = mult(tmp, transposed_matrix);
+//						for (int r = 0; r < final_tile.rows(); r++)
+//						{
+//							for (int c = 0; c < final_tile.cols(); c++)
+//								std::cout << static_cast<float>(final_tile.at(r, c)) << " ";
+//							std::cout << '\n';
+//						}
+//						std::cout << "-------------------------------------------\n";
+//						exit(0);
+
 						assert(final_tile.rows() == final_tile_size && final_tile.cols() == final_tile_size);
 						for (int r = 0; r < final_tile_size; r++)
 							for (int c = 0; c < final_tile_size; c++)
@@ -369,6 +394,34 @@ namespace
 					}
 					tile_index++;
 				}
+	}
+
+	template<typename T, typename U = T>
+	void output_transform_post_action(const MemoryDescriptor &tmpMem, U alpha1, const TensorDescriptor &matricesDesc,
+			const MemoryDescriptor &matricesMem, const TensorDescriptor &yDesc, MemoryDescriptor &yMem, const TensorDescriptor &bDesc,
+			const MemoryDescriptor &bMem, U alpha2, const TensorDescriptor &zDesc, const MemoryDescriptor &zMem, U beta,
+			avActivationType_t activation)
+	{
+		reference::BroadcastedDimensions dimensions = getBroadcastDimensions(yDesc, bDesc);
+
+		const T *src_ptr = tmpMem.data<T>();
+		const T *bias_ptr = bMem.data<T>();
+		const T *ext_ptr = zMem.data<T>();
+		T *dst_ptr = yMem.data<T>();
+
+		for (avSize_t i = 0; i < dimensions.first; i++)
+		{
+			for (avSize_t j = 0; j < dimensions.last; j++)
+			{
+				U src = static_cast<U>(src_ptr[i * dimensions.last + j]);
+				U bias = (bias_ptr == nullptr) ? zero<U>() : static_cast<U>(bias_ptr[j]);
+				U ext = (ext_ptr == nullptr) ? zero<U>() : static_cast<U>(ext_ptr[i * dimensions.last + j]);
+				U dst = (beta == zero<U>()) ? zero<U>() : static_cast<U>(dst_ptr[i * dimensions.last + j]);
+
+				U tmp = activation_forward(activation, alpha1 * src + bias + alpha2 * ext) + beta * dst;
+				dst_ptr[i * dimensions.last + j] = tmp;
+			}
+		}
 	}
 
 	std::array<int, 3> filter_shape_to_array(const TensorDescriptor &desc)
@@ -459,35 +512,41 @@ namespace avocado
 				avActivationType_t activation)
 		{
 			std::array<int, 3> filter = filter_shape_to_array(getTensor(wDesc));
-			avMemoryDescriptor_t tmp_desc;
-			refCreateMemoryDescriptor(&tmp_desc, getMemory(yDesc).size());
+			MemoryDescriptor tmp_mem(getMemory(yMem).size());
 
 			switch (getTensor(yDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT16:
-					winograd_final_transform_2d<float16>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(yDesc),
-							getMemory(tmp_desc), TransformType::OUTPUT, transformSize);
+					winograd_final_transform_2d<float16>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(yDesc), tmp_mem,
+							TransformType::OUTPUT, transformSize);
+					output_transform_post_action<float16, float>(tmp_mem, getAlphaValue<float>(alpha1), getTensor(matricesDesc),
+							getMemory(matricesMem), getTensor(yDesc), getMemory(yMem), getTensor(bDesc), getMemory(bMem),
+							getAlphaValue<float>(alpha2), getTensor(zDesc), getMemory(zMem), getBetaValue<float>(beta), activation);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					winograd_final_transform_2d<float16>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(yDesc),
-							getMemory(tmp_desc), TransformType::OUTPUT, transformSize);
+					winograd_final_transform_2d<bfloat16>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(yDesc), tmp_mem,
+							TransformType::OUTPUT, transformSize);
+					output_transform_post_action<bfloat16, float>(tmp_mem, getAlphaValue<float>(alpha1), getTensor(matricesDesc),
+							getMemory(matricesMem), getTensor(yDesc), getMemory(yMem), getTensor(bDesc), getMemory(bMem),
+							getAlphaValue<float>(alpha2), getTensor(zDesc), getMemory(zMem), getBetaValue<float>(beta), activation);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					winograd_final_transform_2d<float16>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(yDesc),
-							getMemory(tmp_desc), TransformType::OUTPUT, transformSize);
+					winograd_final_transform_2d<float>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(yDesc), tmp_mem,
+							TransformType::OUTPUT, transformSize);
+					output_transform_post_action<float>(tmp_mem, getAlphaValue<float>(alpha1), getTensor(matricesDesc), getMemory(matricesMem),
+							getTensor(yDesc), getMemory(yMem), getTensor(bDesc), getMemory(bMem), getAlphaValue<float>(alpha2), getTensor(zDesc),
+							getMemory(zMem), getBetaValue<float>(beta), activation);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					winograd_final_transform_2d<float16>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(yDesc),
-							getMemory(tmp_desc), TransformType::OUTPUT, transformSize);
+					winograd_final_transform_2d<double>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(yDesc), tmp_mem,
+							TransformType::OUTPUT, transformSize);
+					output_transform_post_action<double>(tmp_mem, getAlphaValue<double>(alpha1), getTensor(matricesDesc), getMemory(matricesMem),
+							getTensor(yDesc), getMemory(yMem), getTensor(bDesc), getMemory(bMem), getAlphaValue<double>(alpha2), getTensor(zDesc),
+							getMemory(zMem), getBetaValue<double>(beta), activation);
 					break;
 				default:
-					refDestroyMemoryDescriptor(tmp_desc);
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 			}
-
-			// y = alpha3 * activation(alpha1 * x + alpha2 * b + beta1 * z) + beta2 * z
-			refAddBias(context, nullptr, alpha1, yDesc, tmp_desc, nullptr, bDesc, bMem, yDesc, yMem, alpha2, beta, zMem, activation);
-			refDestroyMemoryDescriptor(tmp_desc);
 			return AVOCADO_STATUS_SUCCESS;
 		}
 		avStatus_t refWinogradGradientTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int transformSize,
@@ -525,34 +584,37 @@ namespace avocado
 		{
 			std::array<int, 3> filter = filter_shape_to_array(getTensor(dwDesc));
 			avMemoryDescriptor_t tmp_desc;
-			refCreateMemoryDescriptor(&tmp_desc, getMemory(dwDesc).size());
+			avStatus_t status = refCreateMemoryDescriptor(&tmp_desc, getMemory(dwMem).size());
+			if (status != AVOCADO_STATUS_SUCCESS)
+				return status;
 
 			switch (getTensor(dwDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT16:
 					winograd_final_transform_2d<float16>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(dwDesc),
-							getMemory(tmp_desc), TransformType::OUTPUT, transformSize);
+							getMemory(tmp_desc), TransformType::UPDATE, transformSize);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					winograd_final_transform_2d<float16>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(dwDesc),
-							getMemory(tmp_desc), TransformType::OUTPUT, transformSize);
+					winograd_final_transform_2d<bfloat16>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(dwDesc),
+							getMemory(tmp_desc), TransformType::UPDATE, transformSize);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					winograd_final_transform_2d<float16>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(dwDesc),
-							getMemory(tmp_desc), TransformType::OUTPUT, transformSize);
+					winograd_final_transform_2d<float>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(dwDesc),
+							getMemory(tmp_desc), TransformType::UPDATE, transformSize);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					winograd_final_transform_2d<float16>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(dwDesc),
-							getMemory(tmp_desc), TransformType::OUTPUT, transformSize);
+					winograd_final_transform_2d<double>(filter, getTensor(matricesDesc), getMemory(matricesMem), getTensor(dwDesc),
+							getMemory(tmp_desc), TransformType::UPDATE, transformSize);
 					break;
 				default:
 					refDestroyMemoryDescriptor(tmp_desc);
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 			}
 
-			refBinaryOp(context, AVOCADO_BINARY_OP_ADD, alpha, dwDesc, tmp_desc, nullptr, dwDesc, dwMem, beta, dwDesc, dwMem);
-			refDestroyMemoryDescriptor(tmp_desc);
-			return AVOCADO_STATUS_SUCCESS;
+			status = refBinaryOp(context, AVOCADO_BINARY_OP_ADD, alpha, dwDesc, tmp_desc, nullptr, dwDesc, dwMem, beta, dwDesc, dwMem);
+			if (status != AVOCADO_STATUS_SUCCESS)
+				return status;
+			return refDestroyMemoryDescriptor(tmp_desc);
 		}
 
 	} /* namespace backend */
