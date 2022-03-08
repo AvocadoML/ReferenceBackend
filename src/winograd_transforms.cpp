@@ -405,7 +405,7 @@ namespace
 		reference::BroadcastedDimensions dimensions = getBroadcastDimensions(yDesc, bDesc);
 
 		const T *src_ptr = tmpMem.data<T>();
-		const T *bias_ptr = bMem.data<T>();
+		const U *bias_ptr = bMem.data<U>();
 		const T *ext_ptr = zMem.data<T>();
 		T *dst_ptr = yMem.data<T>();
 
