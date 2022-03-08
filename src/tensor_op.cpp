@@ -114,23 +114,26 @@ namespace
 			dst[i] = src[i] + value;
 	}
 
-	template<typename T, typename U, typename V>
-	void kernel_add_bias(T *dst, U alpha3, U alpha1, const V *src1, U alpha2, const U *src2, U beta1, U beta2, const T *ext,
-			BroadcastedDimensions dims, avActivationType_t type) noexcept
+	template<typename dstT, typename srcT, typename biasT>
+	void kernel_add_bias(dstT *dst, biasT alpha1, biasT alpha2, const srcT *src, const biasT *bias, biasT beta1, biasT beta2, biasT beta3,
+			const dstT *ext, BroadcastedDimensions dims, avActivationType_t type) noexcept
 	{
 		for (avSize_t i = 0; i < dims.first; i++)
 			for (avSize_t j = 0; j < dims.last; j++)
 			{
-				U input = alpha1 * static_cast<U>(src1[i * dims.last + j]);
-				U bias = alpha2 * static_cast<U>(src2[j]);
+				biasT input = alpha2 * static_cast<biasT>(src[i * dims.last + j]);
 
-				U tmp = input + bias;
-				if (beta1 != zero<U>() or beta2 != zero<U>())
-					tmp = alpha3 * activation_forward(type, tmp + beta1 * ext[i * dims.last + j]) + beta2 * ext[i * dims.last + j];
-				else
-					tmp = alpha3 * activation_forward(type, tmp);
+				biasT tmp = input + bias[j];
+				if (beta1 != zero<biasT>())
+					tmp += beta1 * ext[i * dims.last + j];
+				tmp = alpha1 * activation_forward(type, tmp);
 
-				dst[i * dims.last + j] = Store<T, U>::store(tmp);
+				if (beta2 != zero<biasT>())
+					tmp += beta2 * ext[i * dims.last + j];
+				if (beta3 != zero<biasT>())
+					tmp += beta3 * dst[i * dims.last + j];
+
+				dst[i * dims.last + j] = Store<dstT, biasT>::store(tmp);
 			}
 	}
 }
@@ -304,9 +307,9 @@ namespace avocado
 			return AVOCADO_STATUS_SUCCESS;
 		}
 
-		avStatus_t refAddBias(avContextDescriptor_t context, const void *alpha3, const void *alpha1, const avTensorDescriptor_t xDesc,
-				const avMemoryDescriptor_t xMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
-				const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem, const void *beta1, const void *beta2, const avMemoryDescriptor_t zMem,
+		avStatus_t refAddBias(avContextDescriptor_t context, const void *alpha1, const void *alpha2, const avTensorDescriptor_t xDesc,
+				const avMemoryDescriptor_t xMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem, const void *beta1, const void *beta2, const void *beta3, const avMemoryDescriptor_t zMem,
 				avActivationType_t activation)
 		{
 			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(xDesc), getTensor(bDesc));
@@ -317,14 +320,14 @@ namespace avocado
 					switch (getTensor(yDesc).dtype())
 					{
 						case AVOCADO_DTYPE_INT8:
-							kernel_add_bias(getPointer<int8_t>(yMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<int8_t>(xMem),
-									getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta1), getBetaValue(beta2),
-									getPointer<int8_t>(zMem), dimensions, activation);
+							kernel_add_bias(getPointer<int8_t>(yMem), getAlphaValue(alpha1), getAlphaValue(alpha2), getPointer<int8_t>(xMem),
+									getPointer<float>(bMem), getBetaValue(beta1), getBetaValue(beta2), getBetaValue(beta3), getPointer<int8_t>(zMem),
+									dimensions, activation);
 							break;
 						case AVOCADO_DTYPE_INT32:
-							kernel_add_bias(getPointer<int8_t>(yMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<int32_t>(xMem),
-									getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta1), getBetaValue(beta2),
-									getPointer<int8_t>(zMem), dimensions, activation);
+							kernel_add_bias(getPointer<int8_t>(yMem), getAlphaValue(alpha1), getAlphaValue(alpha2), getPointer<int32_t>(xMem),
+									getPointer<float>(bMem), getBetaValue(beta1), getBetaValue(beta2), getBetaValue(beta3), getPointer<int8_t>(zMem),
+									dimensions, activation);
 							break;
 						default:
 							return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
@@ -332,23 +335,23 @@ namespace avocado
 					break;
 				}
 				case AVOCADO_DTYPE_FLOAT16:
-					kernel_add_bias(getPointer<float16>(yMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<float16>(xMem),
-							getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta1), getBetaValue(beta2), getPointer<float16>(zMem),
+					kernel_add_bias(getPointer<float16>(yMem), getAlphaValue(alpha1), getAlphaValue(alpha2), getPointer<float16>(xMem),
+							getPointer<float>(bMem), getBetaValue(beta1), getBetaValue(beta2), getBetaValue(beta3), getPointer<float16>(zMem),
 							dimensions, activation);
 					break;
 				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_add_bias(getPointer<bfloat16>(yMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<bfloat16>(xMem),
-							getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta1), getBetaValue(beta2), getPointer<bfloat16>(zMem),
+					kernel_add_bias(getPointer<bfloat16>(yMem), getAlphaValue(alpha1), getAlphaValue(alpha2), getPointer<bfloat16>(xMem),
+							getPointer<float>(bMem), getBetaValue(beta1), getBetaValue(beta2), getBetaValue(beta3), getPointer<bfloat16>(zMem),
 							dimensions, activation);
 					break;
 				case AVOCADO_DTYPE_FLOAT32:
-					kernel_add_bias(getPointer<float>(yMem), getAlphaValue(alpha3), getAlphaValue(alpha1), getPointer<float>(xMem),
-							getAlphaValue(alpha2), getPointer<float>(bMem), getBetaValue(beta1), getBetaValue(beta2), getPointer<float>(zMem),
+					kernel_add_bias(getPointer<float>(yMem), getAlphaValue(alpha1), getAlphaValue(alpha2), getPointer<float>(xMem),
+							getPointer<float>(bMem), getBetaValue(beta1), getBetaValue(beta2), getBetaValue(beta3), getPointer<float>(zMem),
 							dimensions, activation);
 					break;
 				case AVOCADO_DTYPE_FLOAT64:
-					kernel_add_bias(getPointer<double>(yMem), getAlphaValue<double>(alpha3), getAlphaValue<double>(alpha1), getPointer<double>(xMem),
-							getAlphaValue<double>(alpha2), getPointer<double>(bMem), getBetaValue<double>(beta1), getBetaValue<double>(beta2),
+					kernel_add_bias(getPointer<double>(yMem), getAlphaValue<double>(alpha1), getAlphaValue<double>(alpha2), getPointer<double>(xMem),
+							getPointer<double>(bMem), getBetaValue<double>(beta1), getBetaValue<double>(beta2), getBetaValue<double>(beta3),
 							getPointer<double>(zMem), dimensions, activation);
 					break;
 				default:

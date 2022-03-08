@@ -296,10 +296,10 @@ namespace avocado
 
 		/**
 		 *
-		 * y = alpha3 * activation(alpha1 * x + alpha2 * b + beta1 * z) + beta2 * z
+		 * y = alpha1 * activation(alpha2 * x + b + beta1 * z) + beta2 * z + beta3 * y
 		 *
 		 * Supported data type configurations:
-		 *  cdDesc dtype | aDesc dtype | bDesc dtype
+		 *  czDesc dtype | aDesc dtype | bDesc dtype
 		 * --------------|-------------|------------
 		 *  INT8         | INT8        | FLOAT32
 		 *  INT32        | INT8        | FLOAT32
@@ -309,23 +309,23 @@ namespace avocado
 		 *  FLOAT64      | FLOAT64     | FLOAT64
 		 *
 		 * \param[in] context Context in which the operation is performed.
-		 * \param[in] alpha3
 		 * \param[in] alpha1
+		 * \param[in] alpha2
 		 * \param[in] xDesc
 		 * \param[in] xMem
-		 * \param[in] alpha2
 		 * \param[in] bDesc
 		 * \param[in] bMem
 		 * \param[in] yDesc
 		 * \param[out] yMem
 		 * \param[in] beta1
 		 * \param[in] beta2
+		 * \param[in] beta3
 		 * \param[in] zMem
 		 * \param[in] activation
 		 */
-		DLL_PUBLIC avStatus_t refAddBias(avContextDescriptor_t context, const void *alpha3, const void *alpha1, const avTensorDescriptor_t xDesc,
-				const avMemoryDescriptor_t xMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
-				const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem, const void *beta1, const void *beta2, const avMemoryDescriptor_t zMem,
+		DLL_PUBLIC avStatus_t refAddBias(avContextDescriptor_t context, const void *alpha1, const void *alpha2, const avTensorDescriptor_t xDesc,
+				const avMemoryDescriptor_t xMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem, const void *beta1, const void *beta2, const void *beta3, const avMemoryDescriptor_t zMem,
 				avActivationType_t activation);
 
 		/**
