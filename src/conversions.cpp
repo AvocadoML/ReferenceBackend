@@ -143,13 +143,13 @@ namespace
 	};
 
 	template<typename T, typename U>
-	void kernel_convert(T *dst, const U *src, avSize_t elements) noexcept
+	void kernel_convert(T *dst, const U *src, av_int64 elements) noexcept
 	{
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 			dst[i] = Converter<T, U>::convert(src[i]);
 	}
 	template<typename T>
-	void convert_helper(T *dst, const void *src, avSize_t elements, avDataType_t srcType)
+	void convert_helper(T *dst, const void *src, av_int64 elements, avDataType_t srcType)
 	{
 		assert(dst != nullptr);
 		assert(src != nullptr);
@@ -200,7 +200,7 @@ namespace avocado
 	namespace backend
 	{
 		avStatus_t refChangeTypeHost(avContextDescriptor_t context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
-				avSize_t elements)
+				av_int64 elements)
 		{
 			switch (dstType)
 			{
@@ -244,7 +244,7 @@ namespace avocado
 		}
 
 		avStatus_t refChangeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType, const avMemoryDescriptor_t src,
-				avDataType_t srcType, avSize_t elements)
+				avDataType_t srcType, av_int64 elements)
 		{
 			return refChangeTypeHost(context, reference::getPointer<uint8_t>(dst), dstType, reference::getPointer(src), srcType, elements);
 		}

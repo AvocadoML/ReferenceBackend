@@ -12,11 +12,11 @@ namespace avocado
 {
 	namespace backend
 	{
-		avStatus_t refCreateMemoryDescriptor(avMemoryDescriptor_t *result, avSize_t sizeInBytes)
+		avStatus_t refCreateMemoryDescriptor(avMemoryDescriptor_t *result, av_int64 sizeInBytes)
 		{
 			return reference::create<reference::MemoryDescriptor>(result, sizeInBytes);
 		}
-		avStatus_t refCreateMemoryView(avMemoryDescriptor_t *result, const avMemoryDescriptor_t desc, avSize_t sizeInBytes, avSize_t offsetInBytes)
+		avStatus_t refCreateMemoryView(avMemoryDescriptor_t *result, const avMemoryDescriptor_t desc, av_int64 sizeInBytes, av_int64 offsetInBytes)
 		{
 			return reference::create<reference::MemoryDescriptor>(result, reference::getMemory(desc), sizeInBytes, offsetInBytes);
 		}
@@ -24,8 +24,8 @@ namespace avocado
 		{
 			return reference::destroy<reference::MemoryDescriptor>(desc);
 		}
-		avStatus_t refSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset, avSize_t dstSize, const void *pattern,
-				avSize_t patternSize)
+		avStatus_t refSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, av_int64 dstOffset, av_int64 dstSize, const void *pattern,
+				av_int64 patternSize)
 		{
 			if (reference::getPointer(dst) == nullptr)
 				return AVOCADO_STATUS_BAD_PARAM;
@@ -37,12 +37,12 @@ namespace avocado
 
 			if (dstSize % patternSize != 0 or dstOffset % patternSize != 0)
 				return AVOCADO_STATUS_BAD_PARAM;
-			for (avSize_t i = 0; i < dstSize; i += patternSize)
+			for (av_int64 i = 0; i < dstSize; i += patternSize)
 				std::memcpy(reference::getPointer<int8_t>(dst) + dstOffset + i, pattern, patternSize);
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t refCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset, const avMemoryDescriptor_t src,
-				avSize_t srcOffset, avSize_t count)
+		avStatus_t refCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, av_int64 dstOffset, const avMemoryDescriptor_t src,
+				av_int64 srcOffset, av_int64 count)
 		{
 			std::memcpy(reference::getPointer<int8_t>(dst) + dstOffset, reference::getPointer<int8_t>(src) + srcOffset, count);
 			return AVOCADO_STATUS_SUCCESS;
@@ -82,7 +82,7 @@ namespace avocado
 		}
 		avStatus_t refSetTensorDescriptor(avTensorDescriptor_t desc, avDataType_t dtype, int nbDims, const int dimensions[])
 		{
-			if (nbDims < 0 or nbDims > AVOCADO_MAX_TENSOR_DIMENSIONS or dimensions == nullptr)
+			if (nbDims < 0 or nbDims > AVOCADO_MAX_TENSOR_DIMENSIONS or (dimensions == nullptr and nbDims != 0))
 				return AVOCADO_STATUS_BAD_PARAM;
 			try
 			{
@@ -170,7 +170,7 @@ namespace avocado
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t refGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, avSize_t *result)
+		avStatus_t refGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, av_int64 *result)
 		{
 			if (result == nullptr)
 				return AVOCADO_STATUS_BAD_PARAM;

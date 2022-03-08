@@ -69,9 +69,9 @@ namespace
 		if (beta == zero<U>())
 			clear(dst, volume(dims));
 
-		for (avSize_t i = 0; i < dims.first; i++)
+		for (av_int64 i = 0; i < dims.first; i++)
 		{
-			for (avSize_t j = 0; j < dims.last; j++)
+			for (av_int64 j = 0; j < dims.last; j++)
 			{
 				U value1 = alpha1 * static_cast<U>(src1[i * dims.last + j]);
 				U value2;
@@ -94,8 +94,8 @@ namespace
 	noexcept
 	{
 		clear(dst, volume(dims));
-		for (avSize_t i = 0; i < dims.first; i++)
-			for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 i = 0; i < dims.first; i++)
+			for (av_int64 j = 0; j < dims.last; j++)
 			{
 				T lhs = src1[i * dims.last + j];
 				T rhs = src2[i * dims.last + j];

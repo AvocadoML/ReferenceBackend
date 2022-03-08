@@ -21,12 +21,12 @@ namespace
 	}
 
 	template<typename T>
-	void kernel_learn_sgd(T *weight, const T *update, T *momentum, avSize_t elements, T learning_rate, T beta1, bool use_momentum, bool use_nesterov,
+	void kernel_learn_sgd(T *weight, const T *update, T *momentum, av_int64 elements, T learning_rate, T beta1, bool use_momentum, bool use_nesterov,
 			T alpha, T beta)
 	{
 		if (beta == zero<T>())
 			clear(weight, elements);
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 		{
 			T tmp;
 			if (use_momentum)
@@ -43,12 +43,12 @@ namespace
 		}
 	}
 	template<typename T>
-	void kernel_learn_adam(T *weight, const T *update, T *momentum, T *variance, avSize_t elements, T learning_rate, T beta1, T beta2, T alpha,
+	void kernel_learn_adam(T *weight, const T *update, T *momentum, T *variance, av_int64 elements, T learning_rate, T beta1, T beta2, T alpha,
 			T beta)
 	{
 		if (beta == zero<T>())
 			clear(weight, elements);
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 		{
 			momentum[i] = momentum[i] * beta1 + update[i] * (one<T>() - beta1);
 			variance[i] = variance[i] * beta2 + update[i] * update[i] * (one<T>() - beta2);
@@ -60,7 +60,7 @@ namespace
 	avStatus_t sgd_helper(const reference::OptimizerDescriptor &optimizer, const void *alpha, const reference::MemoryDescriptor &dwMem,
 			const void *beta, const reference::TensorDescriptor &wDesc, reference::MemoryDescriptor &wMem, reference::MemoryDescriptor &workspace)
 	{
-		const avSize_t elements = wDesc.volume();
+		const av_int64 elements = wDesc.volume();
 		bool use_momentum = optimizer.flags[0];
 		bool use_nesterov = optimizer.flags[1];
 
@@ -96,7 +96,7 @@ namespace
 	avStatus_t adam_helper(const reference::OptimizerDescriptor &optimizer, const void *alpha, const reference::MemoryDescriptor &dwMem,
 			const void *beta, const reference::TensorDescriptor &wDesc, reference::MemoryDescriptor &wMem, reference::MemoryDescriptor &workspace)
 	{
-		const avSize_t elements = wDesc.volume();
+		const av_int64 elements = wDesc.volume();
 
 		if (workspace.size() < 2 * elements * reference::dataTypeSize(wDesc.dtype()))
 			return AVOCADO_STATUS_INTERNAL_ERROR;

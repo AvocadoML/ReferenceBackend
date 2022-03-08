@@ -293,7 +293,7 @@ namespace
 			clear(dwMem, dwDesc.volume());
 		else
 		{
-			for (avSize_t i = 0; i < dwDesc.volume(); i++)
+			for (av_int64 i = 0; i < dwDesc.volume(); i++)
 				dwMem[i] *= beta;
 		}
 
@@ -355,7 +355,7 @@ namespace
 			clear(dwMem, dwDesc.volume());
 		else
 		{
-			for (avSize_t i = 0; i < dwDesc.volume(); i++)
+			for (av_int64 i = 0; i < dwDesc.volume(); i++)
 				dwMem[i] *= beta;
 		}
 

@@ -402,26 +402,37 @@ namespace
 			const MemoryDescriptor &bMem, U alpha2, const TensorDescriptor &zDesc, const MemoryDescriptor &zMem, U beta,
 			avActivationType_t activation)
 	{
-		reference::BroadcastedDimensions dimensions = getBroadcastDimensions(yDesc, bDesc);
-
-		const T *src_ptr = tmpMem.data<T>();
-		const U *bias_ptr = bMem.data<U>();
-		const T *ext_ptr = zMem.data<T>();
-		T *dst_ptr = yMem.data<T>();
-
-		for (avSize_t i = 0; i < dimensions.first; i++)
+		const bool use_bias = not bMem.isNull();
+		const bool use_ext = not zMem.isNull();
+		if (use_bias)
 		{
-			for (avSize_t j = 0; j < dimensions.last; j++)
-			{
-				U src = static_cast<U>(src_ptr[i * dimensions.last + j]);
-				U bias = (bias_ptr == nullptr) ? zero<U>() : static_cast<U>(bias_ptr[j]);
-				U ext = (ext_ptr == nullptr) ? zero<U>() : static_cast<U>(ext_ptr[i * dimensions.last + j]);
-				U dst = (beta == zero<U>()) ? zero<U>() : static_cast<U>(dst_ptr[i * dimensions.last + j]);
+			reference::BroadcastedDimensions dimensions = getBroadcastDimensions(yDesc, bDesc);
 
-				U tmp = activation_forward(activation, alpha1 * src + bias + alpha2 * ext) + beta * dst;
-				dst_ptr[i * dimensions.last + j] = tmp;
+			for (av_int64 i = 0; i < dimensions.first; i++)
+				for (av_int64 j = 0; j < dimensions.last; j++)
+				{
+					U src = static_cast<U>(tmpMem.data<T>()[i * dimensions.last + j]);
+					U bias = bMem.data<U>()[j];
+					U ext = use_ext ? static_cast<U>(zMem.data<T>()[i * dimensions.last + j]) : zero<U>();
+					U dst = (beta == zero<U>()) ? zero<U>() : static_cast<U>(yMem.data<T>()[i * dimensions.last + j]);
+
+					U tmp = activation_forward(activation, alpha1 * src + bias + alpha2 * ext) + beta * dst;
+					yMem.data<T>()[i * dimensions.last + j] = tmp;
+				}
+		}
+		else
+		{
+			for (av_int64 i = 0; i < yDesc.volume(); i++)
+			{
+				U src = static_cast<U>(tmpMem.data<T>()[i]);
+				U ext = use_ext ? static_cast<U>(zMem.data<T>()[i]) : zero<U>();
+				U dst = (beta == zero<U>()) ? zero<U>() : static_cast<U>(yMem.data<T>()[i]);
+
+				U tmp = activation_forward(activation, alpha1 * src + alpha2 * ext) + beta * dst;
+				yMem.data<T>()[i] = tmp;
 			}
 		}
+
 	}
 
 	std::array<int, 3> filter_shape_to_array(const TensorDescriptor &desc)

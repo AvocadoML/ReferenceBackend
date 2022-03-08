@@ -15,24 +15,24 @@ namespace
 	using namespace avocado::backend;
 	template<typename C_type, typename AB_type, typename Compute_type>
 	void kernel_gemm(avGemmOperation_t opA, avGemmOperation_t opB, C_type *C, const AB_type *A, const AB_type *B, Compute_type alpha,
-			Compute_type beta, avSize_t M, avSize_t N, avSize_t K)
+			Compute_type beta, av_int64 M, av_int64 N, av_int64 K)
 	{
 		if (beta == zero<Compute_type>())
 			clear(C, M * N);
-		for (avSize_t m = 0; m < M; m++)
-			for (avSize_t n = 0; n < N; n++)
+		for (av_int64 m = 0; m < M; m++)
+			for (av_int64 n = 0; n < N; n++)
 			{
 				Compute_type tmp = zero<Compute_type>();
 				if (opA == AVOCADO_GEMM_OPERATION_N)
 				{
 					if (opB == AVOCADO_GEMM_OPERATION_N)
 					{
-						for (avSize_t k = 0; k < K; k++) // C (M x N) = A (M x K) * B (K x N)
+						for (av_int64 k = 0; k < K; k++) // C (M x N) = A (M x K) * B (K x N)
 							tmp += static_cast<Compute_type>(A[m * K + k]) * static_cast<Compute_type>(B[k * N + n]);
 					}
 					else // B is transposed
 					{
-						for (avSize_t k = 0; k < K; k++) // C (M x N) = A (M x K) * B (N x K)
+						for (av_int64 k = 0; k < K; k++) // C (M x N) = A (M x K) * B (N x K)
 							tmp += static_cast<Compute_type>(A[m * K + k]) * static_cast<Compute_type>(B[n * K + k]);
 					}
 				}
@@ -40,12 +40,12 @@ namespace
 				{
 					if (opB == AVOCADO_GEMM_OPERATION_N)
 					{
-						for (avSize_t k = 0; k < K; k++) // C (M x N) = A (K x M) * B (K x N)
+						for (av_int64 k = 0; k < K; k++) // C (M x N) = A (K x M) * B (K x N)
 							tmp += static_cast<Compute_type>(A[k * M + m]) * static_cast<Compute_type>(B[k * N + n]);
 					}
 					else // B is transposed
 					{
-						for (avSize_t k = 0; k < K; k++) // C (M x N) = A (K x M) * B (N x K)
+						for (av_int64 k = 0; k < K; k++) // C (M x N) = A (K x M) * B (N x K)
 							tmp += static_cast<Compute_type>(A[k * M + m]) * static_cast<Compute_type>(B[n * K + k]);
 					}
 				}
@@ -61,9 +61,9 @@ namespace avocado
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const avSize_t M = reference::getTensor(cDesc).firstDim();
-			const avSize_t N = reference::getTensor(cDesc).lastDim();
-			const avSize_t K = (aOp == AVOCADO_GEMM_OPERATION_N) ? reference::getTensor(aDesc).lastDim() : reference::getTensor(aDesc).firstDim();
+			const av_int64 M = reference::getTensor(cDesc).firstDim();
+			const av_int64 N = reference::getTensor(cDesc).lastDim();
+			const av_int64 K = (aOp == AVOCADO_GEMM_OPERATION_N) ? reference::getTensor(aDesc).lastDim() : reference::getTensor(aDesc).firstDim();
 
 			switch (reference::getTensor(cDesc).dtype())
 			{
@@ -112,17 +112,17 @@ namespace avocado
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const avSize_t batch = reference::getTensor(cDesc).dimension(0);
-			const avSize_t M = reference::getTensor(cDesc).dimension(1);
-			const avSize_t N = reference::getTensor(cDesc).dimension(2);
-			const avSize_t K =
+			const av_int64 batch = reference::getTensor(cDesc).dimension(0);
+			const av_int64 M = reference::getTensor(cDesc).dimension(1);
+			const av_int64 N = reference::getTensor(cDesc).dimension(2);
+			const av_int64 K =
 					(aOp == AVOCADO_GEMM_OPERATION_N) ? reference::getTensor(aDesc).dimension(2) : reference::getTensor(aDesc).dimension(1);
 
-			for (avSize_t b = 0; b < batch; b++)
+			for (av_int64 b = 0; b < batch; b++)
 			{
-				avSize_t c_offset = b * M * N;
-				avSize_t a_offset = b * M * K;
-				avSize_t b_offset = b * N * K;
+				av_int64 c_offset = b * M * N;
+				av_int64 a_offset = b * M * K;
+				av_int64 b_offset = b * N * K;
 				switch (reference::getTensor(cDesc).dtype())
 				{
 					case AVOCADO_DTYPE_INT32:

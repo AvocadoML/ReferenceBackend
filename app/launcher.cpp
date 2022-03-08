@@ -123,12 +123,12 @@ T unary_op(avUnaryOp_t operation, T x) noexcept
 	return zero<T>();
 }
 template<typename T, typename U>
-void kernel_unary_op(T *dst, const T *src, U alpha, U beta, avSize_t elements, avUnaryOp_t operation) noexcept
+void kernel_unary_op(T *dst, const T *src, U alpha, U beta, av_int64 elements, avUnaryOp_t operation) noexcept
 {
 	if (beta == zero<U>())
 		clear(dst, elements);
 
-	for (avSize_t i = 0; i < elements; i++)
+	for (av_int64 i = 0; i < elements; i++)
 	{
 		T value = static_cast<T>(alpha * static_cast<U>(src[i]));
 		T result = unary_op(operation, value);
@@ -138,17 +138,17 @@ void kernel_unary_op(T *dst, const T *src, U alpha, U beta, avSize_t elements, a
 	}
 }
 template<typename T>
-void kernel_unary_logical_op(T *dst, const T *src, avSize_t elements, avUnaryOp_t operation) noexcept
+void kernel_unary_logical_op(T *dst, const T *src, av_int64 elements, avUnaryOp_t operation) noexcept
 {
 	clear(dst, elements);
-	for (avSize_t i = 0; i < elements; i++)
+	for (av_int64 i = 0; i < elements; i++)
 		dst[i] = ~(src[i]);
 }
 
 void unaryOp(avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *beta,
 		const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 {
-	const avSize_t elements = reference::getTensor(aDesc).volume();
+	const av_int64 elements = reference::getTensor(aDesc).volume();
 	kernel_unary_op(reference::getPointer<bfloat16>(cMem), reference::getPointer<bfloat16>(aMem), reference::getAlphaValue(alpha),
 			reference::getBetaValue(beta), elements, operation);
 }

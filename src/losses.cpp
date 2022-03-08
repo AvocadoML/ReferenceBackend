@@ -14,75 +14,75 @@ namespace
 {
 	using namespace avocado::backend;
 	template<typename T>
-	T kernel_MSE_loss(const T *output, const T *target, avSize_t elements) noexcept
+	T kernel_MSE_loss(const T *output, const T *target, av_int64 elements) noexcept
 	{
 		T result = zero<T>();
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 			result += square(output[i] - target[i]);
 		return static_cast<T>(0.5) * result;
 	}
 	template<typename T>
-	void kernel_MSE_gradient(T *gradient, const T *output, const T *target, avSize_t elements, T alpha, T beta) noexcept
+	void kernel_MSE_gradient(T *gradient, const T *output, const T *target, av_int64 elements, T alpha, T beta) noexcept
 	{
 		if (beta == zero<T>())
 			clear(gradient, elements);
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 			gradient[i] = alpha * (output[i] - target[i]) + beta * gradient[i];
 	}
 
 	template<typename T>
-	T kernel_CE_loss(const T *output, const T *target, avSize_t elements) noexcept
+	T kernel_CE_loss(const T *output, const T *target, av_int64 elements) noexcept
 	{
 		T result = zero<T>();
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 			result += target[i] * safe_log(output[i]) + (one<T>() - target[i]) * safe_log(one<T>() - output[i]);
 		return -result;
 	}
 	template<typename T>
-	void kernel_CE_gradient(T *gradient, const T *output, const T *target, avSize_t elements, T alpha, T beta, bool fused) noexcept
+	void kernel_CE_gradient(T *gradient, const T *output, const T *target, av_int64 elements, T alpha, T beta, bool fused) noexcept
 	{
 		if (beta == zero<T>())
 			clear(gradient, elements);
 		if (fused)
 		{
-			for (avSize_t i = 0; i < elements; i++)
+			for (av_int64 i = 0; i < elements; i++)
 				gradient[i] = alpha * (output[i] - target[i]) + beta * gradient[i];
 		}
 		else
 		{
-			for (avSize_t i = 0; i < elements; i++)
+			for (av_int64 i = 0; i < elements; i++)
 				gradient[i] = alpha * (output[i] - target[i]) / (eps<T>() + output[i] * (one<T>() - output[i])) + beta * gradient[i];
 		}
 	}
 
 	template<typename T>
-	T kernel_KL_loss(const T *output, const T *target, avSize_t elements) noexcept
+	T kernel_KL_loss(const T *output, const T *target, av_int64 elements) noexcept
 	{
 		T result = zero<T>();
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 			result += target[i] * safe_log(output[i]) + (one<T>() - target[i]) * safe_log(one<T>() - output[i]) - target[i] * safe_log(target[i])
 					- (one<T>() - target[i]) * safe_log(one<T>() - target[i]);
 		return -result;
 	}
 	template<typename T>
-	void kernel_KL_gradient(T *gradient, const T *output, const T *target, avSize_t elements, T alpha, T beta, bool fused) noexcept
+	void kernel_KL_gradient(T *gradient, const T *output, const T *target, av_int64 elements, T alpha, T beta, bool fused) noexcept
 	{
 		if (beta == zero<T>())
 			clear(gradient, elements);
 		if (fused)
 		{
-			for (avSize_t i = 0; i < elements; i++)
+			for (av_int64 i = 0; i < elements; i++)
 				gradient[i] = alpha * (output[i] - target[i]) + beta * gradient[i];
 		}
 		else
 		{
-			for (avSize_t i = 0; i < elements; i++)
+			for (av_int64 i = 0; i < elements; i++)
 				gradient[i] = alpha * (output[i] - target[i]) / (eps<T>() + output[i] * (one<T>() - output[i])) + beta * gradient[i];
 		}
 	}
 
 	template<typename T>
-	T loss_helper(avLossType_t lossType, const T *output, const T *target, avSize_t elements) noexcept
+	T loss_helper(avLossType_t lossType, const T *output, const T *target, av_int64 elements) noexcept
 	{
 		switch (lossType)
 		{
@@ -97,7 +97,7 @@ namespace
 		}
 	}
 	template<typename T>
-	void gradient_helper(avLossType_t lossType, T *gradient, const T *output, const T *target, avSize_t elements, T alpha, T beta, bool fused)
+	void gradient_helper(avLossType_t lossType, T *gradient, const T *output, const T *target, av_int64 elements, T alpha, T beta, bool fused)
 	noexcept
 	{
 		switch (lossType)
@@ -123,7 +123,7 @@ namespace avocado
 		avStatus_t refLossFunction(avContextDescriptor_t context, avLossType_t lossType, const avTensorDescriptor_t outputDesc,
 				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, void *result)
 		{
-			const avSize_t elements = reference::getTensor(outputDesc).volume();
+			const av_int64 elements = reference::getTensor(outputDesc).volume();
 			switch (reference::getTensor(outputDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT32:
@@ -147,7 +147,7 @@ namespace avocado
 				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, const void *beta,
 				const avTensorDescriptor_t gradientDesc, avMemoryDescriptor_t gradientMem, bool isFused)
 		{
-			const avSize_t elements = reference::getTensor(outputDesc).volume();
+			const av_int64 elements = reference::getTensor(outputDesc).volume();
 			switch (reference::getTensor(outputDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT32:

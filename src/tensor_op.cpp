@@ -24,46 +24,46 @@ namespace
 	};
 
 	template<typename T>
-	void kernel_concat_tensors(T *dst, const T *src, avSize_t first_dim, avSize_t src_last_dim, avSize_t dst_last_dim, avSize_t dst_offset) noexcept
+	void kernel_concat_tensors(T *dst, const T *src, av_int64 first_dim, av_int64 src_last_dim, av_int64 dst_last_dim, av_int64 dst_offset) noexcept
 	{
-		for (avSize_t i = 0; i < first_dim; i++)
-			for (avSize_t j = 0; j < src_last_dim; j++)
+		for (av_int64 i = 0; i < first_dim; i++)
+			for (av_int64 j = 0; j < src_last_dim; j++)
 				dst[i * dst_last_dim + dst_offset + j] = src[i * src_last_dim + j];
 	}
 	template<typename T>
 	void concat_helper(const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, const avTensorDescriptor_t aDesc[],
 			const avMemoryDescriptor_t aMem[], int nbTensors)
 	{
-		const avSize_t first_dim = getTensor(cDesc).volumeWithoutLastDim();
-		const avSize_t dst_last_dim = getTensor(cDesc).lastDim();
+		const av_int64 first_dim = getTensor(cDesc).volumeWithoutLastDim();
+		const av_int64 dst_last_dim = getTensor(cDesc).lastDim();
 
-		avSize_t last_dim_offset = 0;
+		av_int64 last_dim_offset = 0;
 		for (int i = 0; i < nbTensors; i++)
 		{
-			const avSize_t src_last_dim = getTensor(aDesc[i]).lastDim();
+			const av_int64 src_last_dim = getTensor(aDesc[i]).lastDim();
 			kernel_concat_tensors(getPointer<T>(cMem), getPointer<T>(aMem[i]), first_dim, src_last_dim, dst_last_dim, last_dim_offset);
 			last_dim_offset += src_last_dim;
 		}
 	}
 
 	template<typename T>
-	void kernel_split_tensors(T *dst, const T *src, avSize_t first_dim, avSize_t src_last_dim, avSize_t dst_last_dim, avSize_t src_offset) noexcept
+	void kernel_split_tensors(T *dst, const T *src, av_int64 first_dim, av_int64 src_last_dim, av_int64 dst_last_dim, av_int64 src_offset) noexcept
 	{
-		for (avSize_t i = 0; i < first_dim; i++)
-			for (avSize_t j = 0; j < dst_last_dim; j++)
+		for (av_int64 i = 0; i < first_dim; i++)
+			for (av_int64 j = 0; j < dst_last_dim; j++)
 				dst[i * dst_last_dim + j] = src[i * src_last_dim + src_offset + j];
 	}
 	template<typename T>
 	void split_helper(const avTensorDescriptor_t cDesc[], avMemoryDescriptor_t cMem[], const avTensorDescriptor_t aDesc,
 			const avMemoryDescriptor_t aMem, int nbTensors)
 	{
-		const avSize_t first_dim = getTensor(aDesc).volumeWithoutLastDim();
-		const avSize_t src_last_dim = getTensor(aDesc).lastDim();
+		const av_int64 first_dim = getTensor(aDesc).volumeWithoutLastDim();
+		const av_int64 src_last_dim = getTensor(aDesc).lastDim();
 
-		avSize_t last_dim_offset = 0;
+		av_int64 last_dim_offset = 0;
 		for (int i = 0; i < nbTensors; i++)
 		{
-			const avSize_t dst_last_dim = getTensor(cDesc[i]).lastDim();
+			const av_int64 dst_last_dim = getTensor(cDesc[i]).lastDim();
 			kernel_split_tensors(getPointer<T>(cMem[i]), getPointer<T>(aMem), first_dim, src_last_dim, dst_last_dim, last_dim_offset);
 			last_dim_offset += dst_last_dim;
 		}
@@ -101,16 +101,16 @@ namespace
 	}
 
 	template<typename T, typename U>
-	void kernel_scale_tensor(T *dst, const T *src, U value, avSize_t elements) noexcept
+	void kernel_scale_tensor(T *dst, const T *src, U value, av_int64 elements) noexcept
 	{
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 			dst[i] = static_cast<U>(src[i]) * value;
 	}
 	template<typename T>
-	void kernel_add_scalar_to_tensor(T *dst, const T *src, const void *scalar, avSize_t elements) noexcept
+	void kernel_add_scalar_to_tensor(T *dst, const T *src, const void *scalar, av_int64 elements) noexcept
 	{
 		const T value = getScalarValue<T>(scalar);
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 			dst[i] = src[i] + value;
 	}
 
@@ -118,8 +118,8 @@ namespace
 	void kernel_add_bias(dstT *dst, biasT alpha1, biasT alpha2, const srcT *src, const biasT *bias, biasT beta1, biasT beta2, biasT beta3,
 			const dstT *ext, BroadcastedDimensions dims, avActivationType_t type) noexcept
 	{
-		for (avSize_t i = 0; i < dims.first; i++)
-			for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 i = 0; i < dims.first; i++)
+			for (av_int64 j = 0; j < dims.last; j++)
 			{
 				biasT input = alpha2 * static_cast<biasT>(src[i * dims.last + j]);
 
@@ -219,7 +219,7 @@ namespace avocado
 		avStatus_t refScaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *alpha,
 				const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const avSize_t elements = getTensor(cDesc).volume();
+			const av_int64 elements = getTensor(cDesc).volume();
 			switch (getTensor(cDesc).dtype())
 			{
 				case AVOCADO_DTYPE_UINT8:
@@ -265,7 +265,7 @@ namespace avocado
 		avStatus_t refAddScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem,
 				const void *scalar, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const avSize_t elements = getTensor(cDesc).volume();
+			const av_int64 elements = getTensor(cDesc).volume();
 			switch (getTensor(cDesc).dtype())
 			{
 				case AVOCADO_DTYPE_UINT8:

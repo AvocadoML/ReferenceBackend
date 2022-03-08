@@ -23,7 +23,7 @@ namespace
 		std::unique_ptr<U[]> workspace = std::make_unique<U[]>(dims.last);
 
 		// first perform initialization of workspace tensor
-		for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 j = 0; j < dims.last; j++)
 		{
 			switch (operation)
 			{
@@ -54,9 +54,9 @@ namespace
 		}
 
 		// now perform the main reduction
-		for (avSize_t i = 0; i < dims.first; i++)
+		for (av_int64 i = 0; i < dims.first; i++)
 		{
-			for (avSize_t j = 0; j < dims.last; j++)
+			for (av_int64 j = 0; j < dims.last; j++)
 			{
 				U value = static_cast<U>(src[i * dims.last + j]);
 				switch (operation)
@@ -105,11 +105,11 @@ namespace
 			default:
 				break;
 			case AVOCADO_REDUCE_AVG:
-				for (avSize_t j = 0; j < dims.last; j++)
+				for (av_int64 j = 0; j < dims.last; j++)
 					workspace[j] = workspace[j] / static_cast<U>(dims.first);
 				break;
 			case AVOCADO_REDUCE_NORM2:
-				for (avSize_t j = 0; j < dims.last; j++)
+				for (av_int64 j = 0; j < dims.last; j++)
 					workspace[j] = avocado::backend::sqrt(workspace[j]);
 				break;
 		}
@@ -117,7 +117,7 @@ namespace
 		if (beta == zero<U>())
 			clear(dst, dims.last);
 		// now store result in dst
-		for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 j = 0; j < dims.last; j++)
 			dst[j] = alpha * workspace[j] + beta * static_cast<U>(dst[j]);
 	}
 }

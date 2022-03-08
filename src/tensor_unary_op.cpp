@@ -54,12 +54,12 @@ namespace
 		return zero<T>();
 	}
 	template<typename T, typename U>
-	void kernel_unary_op(T *dst, const T *src, U alpha, U beta, avSize_t elements, avUnaryOp_t operation) noexcept
+	void kernel_unary_op(T *dst, const T *src, U alpha, U beta, av_int64 elements, avUnaryOp_t operation) noexcept
 	{
 		if (beta == zero<U>())
 			clear(dst, elements);
 
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 		{
 			U value = alpha * static_cast<U>(src[i]);
 			U result = unary_op(operation, value);
@@ -67,10 +67,10 @@ namespace
 		}
 	}
 	template<typename T>
-	void kernel_unary_logical_op(T *dst, const T *src, avSize_t elements, avUnaryOp_t operation) noexcept
+	void kernel_unary_logical_op(T *dst, const T *src, av_int64 elements, avUnaryOp_t operation) noexcept
 	{
 		clear(dst, elements);
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 			dst[i] = ~(src[i]);
 	}
 }
@@ -82,7 +82,7 @@ namespace avocado
 		avStatus_t refUnaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
 				const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const avSize_t elements = reference::getTensor(aDesc).volume();
+			const av_int64 elements = reference::getTensor(aDesc).volume();
 			if (reference::is_logical(operation))
 			{
 				switch (reference::dataTypeSize(reference::getTensor(aDesc).dtype()))
@@ -96,7 +96,7 @@ namespace avocado
 					default:
 					case 4:
 					{
-						const avSize_t tmp = elements * reference::dataTypeSize(reference::getTensor(aDesc).dtype()) / 4;
+						const av_int64 tmp = elements * reference::dataTypeSize(reference::getTensor(aDesc).dtype()) / 4;
 						kernel_unary_logical_op(reference::getPointer<uint32_t>(cMem), reference::getPointer<uint32_t>(aMem), tmp, operation);
 						break;
 					}

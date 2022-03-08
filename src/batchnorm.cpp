@@ -24,8 +24,8 @@ namespace
 	{
 		if (beta == zero<U>())
 			clear(output, volume(dims));
-		for (avSize_t i = 0; i < dims.first; i++)
-			for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 i = 0; i < dims.first; i++)
+			for (av_int64 j = 0; j < dims.last; j++)
 				output[i * dims.last + j] = alpha * activation_forward(type, weight[j] * input[i * dims.last + j] + bias[j])
 						+ beta * output[i * dims.last + j];
 	}
@@ -35,8 +35,8 @@ namespace
 	{
 		if (beta == zero<T>())
 			clear(output, volume(dims));
-		for (avSize_t i = 0; i < dims.first; i++)
-			for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 i = 0; i < dims.first; i++)
+			for (av_int64 j = 0; j < dims.last; j++)
 			{
 				T tmp = (input[i * dims.last + j] - estimated_mean[j]) / std::sqrt(epsilon + estimated_variance[j]);
 				tmp = activation_forward(type, scale[j] * tmp + bias[j]);
@@ -48,20 +48,20 @@ namespace
 			T epsilon, reference::BroadcastedDimensions dims, avActivationType_t type)
 	{
 		clear(saved_mean, dims.last);
-		for (avSize_t i = 0; i < dims.first; i++)
-			for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 i = 0; i < dims.first; i++)
+			for (av_int64 j = 0; j < dims.last; j++)
 				saved_mean[j] += input[i * dims.last + j];
-		for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 j = 0; j < dims.last; j++)
 			saved_mean[j] /= static_cast<T>(dims.first);
 
 		clear(saved_variance, dims.last);
-		for (avSize_t i = 0; i < dims.first; i++)
-			for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 i = 0; i < dims.first; i++)
+			for (av_int64 j = 0; j < dims.last; j++)
 			{
 				T tmp = input[i * dims.last + j] - saved_mean[j];
 				saved_variance[j] += square(tmp);
 			}
-		for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 j = 0; j < dims.last; j++)
 			saved_variance[j] /= static_cast<T>(dims.first);
 
 		kernel_batchnorm_inference(alpha, beta, input, output, scale, bias, saved_mean, saved_variance, epsilon, dims, type);
@@ -75,8 +75,8 @@ namespace
 		clear(d_sigma.get(), dims.last);
 		clear(d_mu.get(), dims.last);
 
-		for (avSize_t i = 0; i < dims.first; i++)
-			for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 i = 0; i < dims.first; i++)
+			for (av_int64 j = 0; j < dims.last; j++)
 			{
 				gradient_next[i * dims.last + j] = activation_backward(type, gradient_next[i * dims.last + j], output[i * dims.last + j]);
 
@@ -89,8 +89,8 @@ namespace
 
 		if (beta == zero<T>())
 			clear(gradient_prev, volume(dims));
-		for (avSize_t i = 0; i < dims.first; i++)
-			for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 i = 0; i < dims.first; i++)
+			for (av_int64 j = 0; j < dims.last; j++)
 			{
 				T stddev = std::sqrt(epsilon + savedVariance[j]);
 				T in = (input[i * dims.last + j] - savedMean[j]) / stddev;
@@ -110,8 +110,8 @@ namespace
 		clear(d_gamma.get(), dims.last);
 		clear(d_beta.get(), dims.last);
 
-		for (avSize_t i = 0; i < dims.first; i++)
-			for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 i = 0; i < dims.first; i++)
+			for (av_int64 j = 0; j < dims.last; j++)
 			{
 				T in = (input[i * dims.last + j] - savedMean[j]) / std::sqrt(epsilon + savedVariance[j]);
 				d_gamma[j] += gradient_next[i * dims.last + j] * in;
@@ -123,7 +123,7 @@ namespace
 			clear(scale_update, dims.last);
 			clear(bias_update, dims.last);
 		}
-		for (avSize_t j = 0; j < dims.last; j++)
+		for (av_int64 j = 0; j < dims.last; j++)
 		{
 			scale_update[j] = alpha * d_gamma[j] + beta * scale_update[j];
 			bias_update[j] = alpha * d_beta[j] + beta * bias_update[j];

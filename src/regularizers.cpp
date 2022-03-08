@@ -14,16 +14,16 @@ namespace
 {
 	using namespace avocado::backend;
 	template<typename T>
-	void kernel_regularizer_l2(T *gradient, const T *param, T scale, T offset, avSize_t elements)
+	void kernel_regularizer_l2(T *gradient, const T *param, T scale, T offset, av_int64 elements)
 	{
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 			gradient[i] += scale * (param[i] - offset);
 	}
 	template<typename T>
-	T kernel_loss_l2(const T *param, T scale, T offset, avSize_t elements)
+	T kernel_loss_l2(const T *param, T scale, T offset, av_int64 elements)
 	{
 		T result = zero<T>();
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 			result += square(param[i] - offset);
 		return static_cast<T>(0.5) * scale * result;
 	}
@@ -36,7 +36,7 @@ namespace avocado
 		avStatus_t refRegularizerL2(avContextDescriptor_t context, const avTensorDescriptor_t dwDesc, avMemoryDescriptor_t dwMem,
 				const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem, const void *scale, const void *offset, void *loss)
 		{
-			const avSize_t elements = reference::getTensor(dwDesc).volume();
+			const av_int64 elements = reference::getTensor(dwDesc).volume();
 			switch (reference::getTensor(dwDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT32:

@@ -502,17 +502,17 @@ namespace avocado
 		}
 
 		template<typename T>
-		void clear(T *ptr, avSize_t elements) noexcept
+		void clear(T *ptr, av_int64 elements) noexcept
 		{
 			assert(ptr != nullptr);
-			for (avSize_t i = 0; i < elements; i++)
+			for (av_int64 i = 0; i < elements; i++)
 				ptr[i] = zero<T>();
 		}
 		template<typename T>
-		void fill(T *ptr, avSize_t elements, T value) noexcept
+		void fill(T *ptr, av_int64 elements, T value) noexcept
 		{
 			assert(ptr != nullptr);
-			for (avSize_t i = 0; i < elements; i++)
+			for (av_int64 i = 0; i < elements; i++)
 				ptr[i] = value;
 		}
 
