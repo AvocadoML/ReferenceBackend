@@ -1025,11 +1025,12 @@ namespace avocado
 		 *
 		 * \param[in] desc
 		 * \param[in] type
+		 * \param[in] steps
 		 * \param[in] learningRate
 		 * \param[in] coefficients
 		 * \param[in] flags
 		 */
-		DLL_PUBLIC avStatus_t refSetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t type, double learningRate,
+		DLL_PUBLIC avStatus_t refSetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t type, av_int64 steps, double learningRate,
 				const double coefficients[], const bool flags[]);
 
 		/**
@@ -1037,11 +1038,12 @@ namespace avocado
 		 *
 		 * \param[in] desc
 		 * \param[out] type
+		 * \param[out] steps
 		 * \param[out] learningRate
 		 * \param[out] coefficients
 		 * \param[out] flags
 		 */
-		DLL_PUBLIC avStatus_t refGetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t *type, double *learningRate,
+		DLL_PUBLIC avStatus_t refGetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t *type, av_int64 *steps, double *learningRate,
 				double coefficients[], bool flags[]);
 
 		/**

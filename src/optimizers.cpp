@@ -21,7 +21,7 @@ namespace
 	}
 
 	template<typename T>
-	void kernel_learn_sgd(T *weight, const T *update, T *momentum, av_int64 elements, T learning_rate, T beta1, bool use_momentum, bool use_nesterov,
+	void kernel_learn_sgd(T *weight, const T *update, T *momentum, av_int64 elements, T learningRate, T beta1, bool useMomentum, bool useNesterov,
 			T alpha, T beta)
 	{
 		if (beta == zero<T>())
@@ -29,22 +29,21 @@ namespace
 		for (av_int64 i = 0; i < elements; i++)
 		{
 			T tmp;
-			if (use_momentum)
+			if (useMomentum)
 			{
-				momentum[i] = beta1 * momentum[i] - learning_rate * update[i];
-				if (use_nesterov)
-					tmp = beta1 * momentum[i] - learning_rate * update[i];
+				momentum[i] = beta1 * momentum[i] - learningRate * update[i];
+				if (useNesterov)
+					tmp = beta1 * momentum[i] - learningRate * update[i];
 				else
 					tmp = momentum[i];
 			}
 			else
-				tmp = -learning_rate * update[i];
+				tmp = -learningRate * update[i];
 			weight[i] = round_small_to_zero(alpha * tmp + beta * weight[i]);
 		}
 	}
 	template<typename T>
-	void kernel_learn_adam(T *weight, const T *update, T *momentum, T *variance, av_int64 elements, T learning_rate, T beta1, T beta2, T alpha,
-			T beta)
+	void kernel_learn_adam(T *weight, const T *update, T *momentum, T *variance, av_int64 elements, T learningRate, T beta1, T beta2, T alpha, T beta)
 	{
 		if (beta == zero<T>())
 			clear(weight, elements);
@@ -52,7 +51,7 @@ namespace
 		{
 			momentum[i] = momentum[i] * beta1 + update[i] * (one<T>() - beta1);
 			variance[i] = variance[i] * beta2 + update[i] * update[i] * (one<T>() - beta2);
-			T tmp = -momentum[i] * learning_rate / std::sqrt(variance[i] + eps<T>());
+			T tmp = -momentum[i] * learningRate / std::sqrt(variance[i] + eps<T>());
 			weight[i] = round_small_to_zero(alpha * tmp + beta * weight[i]);
 		}
 	}
@@ -93,13 +92,15 @@ namespace
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
-	avStatus_t adam_helper(const reference::OptimizerDescriptor &optimizer, const void *alpha, const reference::MemoryDescriptor &dwMem,
-			const void *beta, const reference::TensorDescriptor &wDesc, reference::MemoryDescriptor &wMem, reference::MemoryDescriptor &workspace)
+	avStatus_t adam_helper(reference::OptimizerDescriptor &optimizer, const void *alpha, const reference::MemoryDescriptor &dwMem, const void *beta,
+			const reference::TensorDescriptor &wDesc, reference::MemoryDescriptor &wMem, reference::MemoryDescriptor &workspace)
 	{
 		const av_int64 elements = wDesc.volume();
 
 		if (workspace.size() < 2 * elements * reference::dataTypeSize(wDesc.dtype()))
 			return AVOCADO_STATUS_INTERNAL_ERROR;
+
+		const int64_t steps = optimizer.steps;
 		switch (wDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
@@ -109,8 +110,11 @@ namespace
 				float beta1 = optimizer.coef[0];
 				float beta2 = optimizer.coef[1];
 				float learning_rate = optimizer.learning_rate;
+				if (steps < 10000)
+					learning_rate *= std::sqrt(1.0f - pow(beta2, steps)) / (1.0f - pow(beta1, steps));
 				kernel_learn_adam(wMem.data<float>(), dwMem.data<float>(), workspace.data<float>(), workspace.data<float>() + elements, elements,
 						learning_rate, beta1, beta2, _alpha, _beta);
+				optimizer.steps++;
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
@@ -120,8 +124,11 @@ namespace
 				double beta1 = optimizer.coef[0];
 				double beta2 = optimizer.coef[1];
 				double learning_rate = optimizer.learning_rate;
+				if (steps < 10000)
+					learning_rate *= std::sqrt(1.0 - pow(beta2, steps)) / (1.0 - pow(beta1, steps));
 				kernel_learn_adam(wMem.data<double>(), dwMem.data<double>(), workspace.data<double>(), workspace.data<double>() + elements, elements,
 						learning_rate, beta1, beta2, _alpha, _beta);
+				optimizer.steps++;
 				break;
 			}
 			default:
