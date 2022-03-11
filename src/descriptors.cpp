@@ -28,7 +28,13 @@ namespace avocado
 				av_int64 patternSize)
 		{
 			if (reference::getPointer(dst) == nullptr)
-				return AVOCADO_STATUS_BAD_PARAM;
+			{
+				if (dstSize != 0)
+					return AVOCADO_STATUS_BAD_PARAM;
+				else
+					return AVOCADO_STATUS_SUCCESS;
+			}
+
 			if (pattern == nullptr)
 			{
 				std::memset(reference::getPointer<int8_t>(dst) + dstOffset, 0, dstSize);
