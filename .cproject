@@ -38,12 +38,12 @@
 									<listOptionValue builtIn="false" value="USE_CUDA=0"/>
 									<listOptionValue builtIn="false" value="USE_CPU=0"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.1738155944" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -fsanitize=address -fsanitize=undefined" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1738155944" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -fsanitize=address -fsanitize=undefined" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.766332962" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.linker.1531141225" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.cpp.linker.1668784030" name="Cross G++ Linker" superClass="cdt.managedbuild.tool.gnu.cross.cpp.linker">
-								<option id="gnu.cpp.link.option.flags.485481231" superClass="gnu.cpp.link.option.flags" useByScannerDiscovery="false" value=" -fsanitize=address -fsanitize=undefined" valueType="string"/>
+								<option id="gnu.cpp.link.option.flags.485481231" name="Linker flags" superClass="gnu.cpp.link.option.flags" useByScannerDiscovery="false" value=" -fsanitize=address -fsanitize=undefined" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1827402306" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>

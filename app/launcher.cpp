@@ -153,19 +153,27 @@ void unaryOp(avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_
 			reference::getBetaValue(beta), elements, operation);
 }
 
+struct Asdf
+{
+		std::array<int, 8> tmp;
+};
+
 int main(int argc, char *argv[])
 {
-	avConvolutionDescriptor_t config;
-	refCreateConvolutionDescriptor(&config);
-	std::array<int, 3> padding = { -1, -1, 0 };
-	std::array<int, 3> strides = { 1, 1, 0 };
-	std::array<int, 3> dilation = { 1, 1, 0 };
-	refSetConvolutionDescriptor(config, AVOCADO_CONVOLUTION_MODE, 2, padding.data(), strides.data(), dilation.data(), 1, nullptr);
+	Asdf asdf;
+	asdf.tmp[0] = 0;
 
-	TensorWrapper weight( { 13, 3, 3, 1 }, AVOCADO_DTYPE_FLOAT32);
-	TensorWrapper input( { 1, 2, 2, 1 }, AVOCADO_DTYPE_FLOAT32);
-	TensorWrapper matrices( { 16, 1, 1 }, AVOCADO_DTYPE_FLOAT32);
-	refWinogradInputTransform(0, config, 2, weight.getDesc(), input.getDesc(), input.getMem(), matrices.getDesc(), matrices.getMem());
+//	avConvolutionDescriptor_t config;
+//	refCreateConvolutionDescriptor(&config);
+//	std::array<int, 3> padding = { -1, -1, 0 };
+//	std::array<int, 3> strides = { 1, 1, 0 };
+//	std::array<int, 3> dilation = { 1, 1, 0 };
+//	refSetConvolutionDescriptor(config, AVOCADO_CONVOLUTION_MODE, 2, padding.data(), strides.data(), dilation.data(), 1, nullptr);
+//
+//	TensorWrapper weight( { 13, 3, 3, 1 }, AVOCADO_DTYPE_FLOAT32);
+//	TensorWrapper input( { 1, 2, 2, 1 }, AVOCADO_DTYPE_FLOAT32);
+//	TensorWrapper matrices( { 16, 1, 1 }, AVOCADO_DTYPE_FLOAT32);
+//	refWinogradInputTransform(0, config, 2, weight.getDesc(), input.getDesc(), input.getMem(), matrices.getDesc(), matrices.getMem());
 
 //	TensorWrapper input( { 123 }, AVOCADO_DTYPE_BFLOAT16);
 //	TensorWrapper output( { 123 }, AVOCADO_DTYPE_BFLOAT16);
