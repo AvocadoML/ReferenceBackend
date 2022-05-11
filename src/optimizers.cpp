@@ -5,9 +5,9 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <backend_descriptors.hpp>
-#include <ReferenceBackend/reference_backend.h>
+#include <Avocado/reference_backend.h>
 
+#include <Avocado/backend_descriptors.hpp>
 #include "utils.hpp"
 
 namespace
@@ -97,7 +97,7 @@ namespace
 	{
 		const av_int64 elements = wDesc.volume();
 
-		if (workspace.size() < 2 * elements * reference::dataTypeSize(wDesc.dtype()))
+		if (workspace.sizeInBytes() < 2 * elements * reference::dataTypeSize(wDesc.dtype()))
 			return AVOCADO_STATUS_INTERNAL_ERROR;
 
 		const int64_t steps = optimizer.steps;
@@ -142,18 +142,18 @@ namespace avocado
 {
 	namespace backend
 	{
+		using namespace BACKEND_NAMESPACE;
+
 		avStatus_t refOptimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const void *alpha,
 				const avTensorDescriptor_t dwDesc, const avMemoryDescriptor_t dwMem, const void *beta, const avTensorDescriptor_t wDesc,
 				avMemoryDescriptor_t wMem, avMemoryDescriptor_t workspace)
 		{
-			switch (reference::getOptimizer(config).type)
+			switch (getOptimizer(config).type)
 			{
 				case AVOCADO_OPTIMIZER_SGD:
-					return sgd_helper(reference::getOptimizer(config), alpha, reference::getMemory(dwMem), beta, reference::getTensor(wDesc),
-							reference::getMemory(wMem), reference::getMemory(workspace));
+					return sgd_helper(getOptimizer(config), alpha, getMemory(dwMem), beta, getTensor(wDesc), getMemory(wMem), getMemory(workspace));
 				case AVOCADO_OPTIMIZER_ADAM:
-					return adam_helper(reference::getOptimizer(config), alpha, reference::getMemory(dwMem), beta, reference::getTensor(wDesc),
-							reference::getMemory(wMem), reference::getMemory(workspace));
+					return adam_helper(getOptimizer(config), alpha, getMemory(dwMem), beta, getTensor(wDesc), getMemory(wMem), getMemory(workspace));
 				default:
 					return AVOCADO_STATUS_BAD_PARAM;
 			}

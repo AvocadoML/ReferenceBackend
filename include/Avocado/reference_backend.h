@@ -5,10 +5,10 @@
  *      Author: Maciej Kozarzewski
  */
 
-#ifndef REFERENCEBACKEND_REFERENCE_BACKEND_H_
-#define REFERENCEBACKEND_REFERENCE_BACKEND_H_
+#ifndef AVOCADO_REFERENCE_BACKEND_H_
+#define AVOCADO_REFERENCE_BACKEND_H_
 
-#include "backend_defs.h"
+#include <Avocado/backend_defs.h>
 
 namespace avocado
 {
@@ -50,6 +50,11 @@ namespace avocado
 		 *
 		 * Context specifies the device on which the operation is performed.
 		 */
+
+		/*
+		 * \brief Returns description of the last error.
+		 */
+		DLL_PUBLIC avStatus_t refGetLastErrorDescription(char *description, av_int64 *length);
 
 		/*
 		 *
@@ -1086,4 +1091,4 @@ namespace avocado
 	} /* namespace backend */
 } /* namespace avocado */
 
-#endif /* REFERENCEBACKEND_REFERENCE_BACKEND_H_ */
+#endif /* AVOCADO_REFERENCE_BACKEND_H_ */

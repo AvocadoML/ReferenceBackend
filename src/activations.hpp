@@ -8,7 +8,7 @@
 #ifndef ACTIVATIONS_HPP_
 #define ACTIVATIONS_HPP_
 
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 
 #include "utils.hpp"
 

@@ -5,9 +5,9 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <backend_descriptors.hpp>
-#include <ReferenceBackend/reference_backend.h>
+#include <Avocado/reference_backend.h>
 
+#include <Avocado/backend_descriptors.hpp>
 #include "../src/fp16.hpp"
 #include "../src/utils.hpp"
 #include "../src/activations.hpp"

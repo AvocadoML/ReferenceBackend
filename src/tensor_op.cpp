@@ -4,14 +4,15 @@
  *  Created on: Nov 12, 2021
  *      Author: Maciej Kozarzewski
  */
-#include <backend_descriptors.hpp>
-#include <ReferenceBackend/reference_backend.h>
+#include <Avocado/reference_backend.h>
 
+#include <Avocado/backend_descriptors.hpp>
 #include "fp16.hpp"
 #include "utils.hpp"
 #include "activations.hpp"
 
 #include <memory>
+#include <complex>
 
 namespace
 {
@@ -155,7 +156,8 @@ namespace avocado
 {
 	namespace backend
 	{
-		using namespace reference;
+		using namespace BACKEND_NAMESPACE;
+
 		avStatus_t refConcatTensors(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
 				const avTensorDescriptor_t aDesc[], const avMemoryDescriptor_t aMem[], int nbTensors)
 		{

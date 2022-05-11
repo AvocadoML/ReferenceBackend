@@ -5,9 +5,9 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <backend_descriptors.hpp>
-#include <ReferenceBackend/reference_backend.h>
+#include <Avocado/reference_backend.h>
 
+#include <Avocado/backend_descriptors.hpp>
 #include "utils.hpp"
 #include "activations.hpp"
 
@@ -462,7 +462,8 @@ namespace avocado
 {
 	namespace backend
 	{
-		using namespace reference;
+		using namespace BACKEND_NAMESPACE;
+
 		avStatus_t refConvolutionImplicitGemmForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
 				const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2, const avTensorDescriptor_t zDesc,

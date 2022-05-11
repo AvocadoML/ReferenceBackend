@@ -4,14 +4,15 @@
  *  Created on: Nov 12, 2021
  *      Author: Maciej Kozarzewski
  */
-#include <backend_descriptors.hpp>
-#include <ReferenceBackend/reference_backend.h>
+#include <Avocado/reference_backend.h>
 
+#include <Avocado/backend_descriptors.hpp>
 #include "fp16.hpp"
 #include "utils.hpp"
 #include "activations.hpp"
 
 #include <memory>
+#include <complex>
 
 namespace
 {
@@ -199,6 +200,8 @@ namespace avocado
 {
 	namespace backend
 	{
+		using namespace BACKEND_NAMESPACE;
+
 		avStatus_t refChangeTypeHost(avContextDescriptor_t context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
 				av_int64 elements)
 		{
@@ -246,7 +249,7 @@ namespace avocado
 		avStatus_t refChangeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType, const avMemoryDescriptor_t src,
 				avDataType_t srcType, av_int64 elements)
 		{
-			return refChangeTypeHost(context, reference::getPointer<uint8_t>(dst), dstType, reference::getPointer(src), srcType, elements);
+			return refChangeTypeHost(context, getPointer<uint8_t>(dst), dstType, getPointer(src), srcType, elements);
 		}
 	} /* namespace backend */
 } /* namespace avocado */

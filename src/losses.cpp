@@ -5,9 +5,9 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <backend_descriptors.hpp>
-#include <ReferenceBackend/reference_backend.h>
+#include <Avocado/reference_backend.h>
 
+#include <Avocado/backend_descriptors.hpp>
 #include "utils.hpp"
 
 namespace
@@ -97,8 +97,8 @@ namespace
 		}
 	}
 	template<typename T>
-	void gradient_helper(avLossType_t lossType, T *gradient, const T *output, const T *target, av_int64 elements, T alpha, T beta, bool fused)
-	noexcept
+	void gradient_helper(avLossType_t lossType, T *gradient, const T *output, const T *target, av_int64 elements, T alpha, T beta,
+			bool fused) noexcept
 	{
 		switch (lossType)
 		{
@@ -119,22 +119,23 @@ namespace avocado
 {
 	namespace backend
 	{
+		using namespace BACKEND_NAMESPACE;
 
 		avStatus_t refLossFunction(avContextDescriptor_t context, avLossType_t lossType, const avTensorDescriptor_t outputDesc,
 				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, void *result)
 		{
-			const av_int64 elements = reference::getTensor(outputDesc).volume();
-			switch (reference::getTensor(outputDesc).dtype())
+			const av_int64 elements = getTensor(outputDesc).volume();
+			switch (getTensor(outputDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT32:
 				{
-					float loss = loss_helper(lossType, reference::getPointer<float>(outputMem), reference::getPointer<float>(targetMem), elements);
+					float loss = loss_helper(lossType, getPointer<float>(outputMem), getPointer<float>(targetMem), elements);
 					std::memcpy(result, &loss, sizeof(float));
 					break;
 				}
 				case AVOCADO_DTYPE_FLOAT64:
 				{
-					double loss = loss_helper(lossType, reference::getPointer<double>(outputMem), reference::getPointer<double>(targetMem), elements);
+					double loss = loss_helper(lossType, getPointer<double>(outputMem), getPointer<double>(targetMem), elements);
 					std::memcpy(result, &loss, sizeof(double));
 					break;
 				}
@@ -147,21 +148,19 @@ namespace avocado
 				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, const void *beta,
 				const avTensorDescriptor_t gradientDesc, avMemoryDescriptor_t gradientMem, bool isFused)
 		{
-			const av_int64 elements = reference::getTensor(outputDesc).volume();
-			switch (reference::getTensor(outputDesc).dtype())
+			const av_int64 elements = getTensor(outputDesc).volume();
+			switch (getTensor(outputDesc).dtype())
 			{
 				case AVOCADO_DTYPE_FLOAT32:
 				{
-					gradient_helper(lossType, reference::getPointer<float>(gradientMem), reference::getPointer<float>(outputMem),
-							reference::getPointer<float>(targetMem), elements, reference::getAlphaValue(alpha), reference::getBetaValue(beta),
-							isFused);
+					gradient_helper(lossType, getPointer<float>(gradientMem), getPointer<float>(outputMem), getPointer<float>(targetMem), elements,
+							getAlphaValue(alpha), getBetaValue(beta), isFused);
 					break;
 				}
 				case AVOCADO_DTYPE_FLOAT64:
 				{
-					gradient_helper(lossType, reference::getPointer<double>(gradientMem), reference::getPointer<double>(outputMem),
-							reference::getPointer<double>(targetMem), elements, reference::getAlphaValue<double>(alpha),
-							reference::getBetaValue<double>(beta), isFused);
+					gradient_helper(lossType, getPointer<double>(gradientMem), getPointer<double>(outputMem), getPointer<double>(targetMem), elements,
+							getAlphaValue<double>(alpha), getBetaValue<double>(beta), isFused);
 					break;
 				}
 				default:

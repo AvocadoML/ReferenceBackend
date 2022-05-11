@@ -5,9 +5,9 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <backend_descriptors.hpp>
-#include <ReferenceBackend/reference_backend.h>
+#include <Avocado/reference_backend.h>
 
+#include <Avocado/backend_descriptors.hpp>
 #include "utils.hpp"
 #include "activations.hpp"
 
@@ -455,7 +455,7 @@ namespace avocado
 {
 	namespace backend
 	{
-		using namespace reference;
+		using namespace BACKEND_NAMESPACE;
 
 		avStatus_t refWinogradWeightTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int transformSize,
 				const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem, const avTensorDescriptor_t matricesDesc,
@@ -523,7 +523,7 @@ namespace avocado
 				avActivationType_t activation)
 		{
 			std::array<int, 3> filter = filter_shape_to_array(getTensor(wDesc));
-			MemoryDescriptor tmp_mem(getMemory(yMem).size());
+			MemoryDescriptor tmp_mem(getMemory(yMem).sizeInBytes(), 0);
 
 			switch (getTensor(yDesc).dtype())
 			{
@@ -595,7 +595,7 @@ namespace avocado
 		{
 			std::array<int, 3> filter = filter_shape_to_array(getTensor(dwDesc));
 			avMemoryDescriptor_t tmp_desc;
-			avStatus_t status = refCreateMemoryDescriptor(&tmp_desc, getMemory(dwMem).size());
+			avStatus_t status = refCreateMemoryDescriptor(&tmp_desc, getMemory(dwMem).sizeInBytes());
 			if (status != AVOCADO_STATUS_SUCCESS)
 				return status;
 
